@@ -111,4 +111,21 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+// Search Game Nights by Title
+router.get("/search", async (req, res) => {
+  const { title } = req.query;
+
+  try {
+    const result = await pool.query(
+      "SELECT * FROM game_nights WHERE LOWER(title) LIKE LOWER($1) ORDER BY event_date DESC",
+      [`%${title}%`]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
+
 module.exports = router;
