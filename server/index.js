@@ -7,10 +7,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const pool = require("./db");
 const authRoutes = require("./routes/auth");
+const gameNightRoutes = require("./routes/game_nights");
 
 app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/game_nights", gameNightRoutes);
 
 // Test route
 app.get("/", async (req, res) => {
