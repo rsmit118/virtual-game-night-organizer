@@ -128,4 +128,28 @@ router.get("/search", async (req, res) => {
   }
 });
 
+// Report: Game Nights Report
+router.get("/report", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT 
+        title, 
+        event_date, 
+        organizer_id, 
+        created_at 
+       FROM game_nights 
+       ORDER BY event_date DESC`
+    );
+
+    res.json({
+      report_title: "Game Nights Report",
+      generated_at: new Date(),
+      data: result.rows,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
+
 module.exports = router;
