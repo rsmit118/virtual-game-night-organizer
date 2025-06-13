@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function LoginForm() {
+function LoginForm({ onLoginSuccess }) {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -24,6 +24,9 @@ function LoginForm() {
       const data = await response.json();
       if (response.ok) {
         setMessage(`Login successful! Welcome, ${data.username}`);
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
       } else {
         setMessage(data.message || "Login failed");
       }

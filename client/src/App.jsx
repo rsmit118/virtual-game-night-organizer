@@ -1,17 +1,21 @@
 import React from "react";
-import CreateGameNightForm from "./components/CreateGameNightForm";
-import GameNightsList from "./components/GameNightsList";
-import LoginForm from "./components/LoginForm";
-import RegisterForm from "./components/RegisterForm";
+import { Link, Route, Routes } from "react-router-dom";
+import GameNightsPage from "./pages/GameNightsPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 
 function App() {
   return (
     <div>
-      <h1>Virtual Game Night Organizer</h1>
-      <RegisterForm />
-      <LoginForm />
-      <CreateGameNightForm />
-      <GameNightsList />
+      <nav>
+        <Link to="/register">Register</Link> | <Link to="/login">Login</Link> |{" "}
+        <Link to="/game-nights">Game Nights</Link>
+      </nav>
+      <Routes>
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/game-nights" element={<GameNightsPage />} />
+      </Routes>
     </div>
   );
 }
