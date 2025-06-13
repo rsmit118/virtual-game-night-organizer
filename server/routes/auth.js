@@ -112,4 +112,34 @@ router.get("/organizers", async (req, res) => {
   }
 });
 
+// Demo: Users with polymorphism
+router.get("/demo/users", (req, res) => {
+  const User = require("../models/User");
+  const Organizer = require("../models/Organizer");
+
+  const user = new User(1, "RegularUser", "user@example.com");
+  const organizer = new Organizer(
+    2,
+    "GameMaster",
+    "organizer@example.com",
+    1001
+  );
+
+  const users = [
+    {
+      type: "User",
+      role: user.getRole(),
+      summary: user.getSummary(),
+    },
+    {
+      type: "Organizer",
+      role: organizer.getRole(),
+      summary: organizer.getSummary(),
+      organizerSummary: organizer.getOrganizerSummary(),
+    },
+  ];
+
+  res.json(users);
+});
+
 module.exports = router;
