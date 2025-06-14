@@ -43,7 +43,7 @@ function HomePage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/login", {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -150,7 +150,7 @@ function HomePage() {
         <div className="auth-box">
           <div className="auth-sub-box">
             <h2>Log in</h2>
-            <div className="login-form">
+            <form className="login-form" onSubmit={handleLogin}>
               <input
                 type="text"
                 placeholder="Username"
@@ -165,17 +165,14 @@ function HomePage() {
                 onChange={(e) => setLoginPassword(e.target.value)}
                 required
               />
-              <button
-                type="button"
-                className="home-button"
-                onClick={handleLogin}
-              >
+              <button type="submit" className="home-button">
                 Login
               </button>
-            </div>
+            </form>
           </div>
+          <p className="or">or</p>
           <div className="auth-sub-box">
-            <h2>Need to register?</h2>
+            <h2>Make an Account</h2>
             <button
               type="button"
               className="home-button"
