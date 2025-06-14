@@ -51,7 +51,7 @@
 }
 
 .home-content-box {
-  background-color: rgba(0, 0, 0, 0.6); /* fallback */
+  background-color: rgba(0, 0, 0, 0.6);
   padding: 10px 40px 35px 40px;
   border-radius: 12px;
   max-width: 1100px;
@@ -207,7 +207,7 @@
 }
 
 .register-modal {
-  background-color: rgba(0, 0, 0, 0.6); /* fallback */
+  background-color: rgba(0, 0, 0, 0.6);
   padding: 30px 40px 30px 40px;
   border-radius: 12px;
   text-align: center;
@@ -305,8 +305,8 @@
   font-size: 1.1rem;
   font-weight: 500;
   color: #fff;
-  background-color: #b91c1c; /* rich red */
-  border-left: 6px solid #ef4444; /* brighter red accent */
+  background-color: #b91c1c;
+  border-left: 6px solid #ef4444;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   animation: toastSlideIn 0.25s ease-out;

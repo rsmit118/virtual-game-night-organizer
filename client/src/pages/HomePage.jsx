@@ -15,6 +15,7 @@ function HomePage() {
   const [passwordError, setPasswordError] = useState("");
   const [toastMessages, setToastMessages] = useState([]);
   const [exitingToastIndexes, setExitingToastIndexes] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const resetRegisterForm = () => {
     setRegisterName("");
@@ -31,12 +32,19 @@ function HomePage() {
   };
 
   const showToast = (message) => {
-    const id = Date.now();
-    setToastMessages((prev) => [...prev, { id, text: message }]);
+    if (toastMessages.some((msg) => msg.text === message)) return;
+
+    const id = `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+    const newToast = { id, text: message };
+
+    setToastMessages((prev) => [...prev, newToast]);
 
     setTimeout(() => {
       setExitingToastIndexes((prev) => [...prev, id]);
-      setTimeout(() => removeToast(id), 300);
+      setTimeout(() => {
+        setToastMessages((prev) => prev.filter((msg) => msg.id !== id));
+        setExitingToastIndexes((prev) => prev.filter((eid) => eid !== id));
+      }, 300);
     }, 3000);
   };
 
@@ -88,6 +96,9 @@ function HomePage() {
   const handleRegister = async (e) => {
     e.preventDefault();
 
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     setNameError("");
     setEmailError("");
     setPasswordError("");
@@ -107,6 +118,7 @@ function HomePage() {
       if (errors.includes("Password must be at least 6 characters long"))
         setPasswordError("Password must be at least 6 characters long.");
       errors.forEach((err) => showToast(err));
+      setIsSubmitting(false);
       return;
     }
 
@@ -156,6 +168,8 @@ function HomePage() {
       console.error("Error during registration:", err);
       setNameError("An error occurred during registration.");
     }
+
+    setIsSubmitting(false);
   };
 
   return (
@@ -272,6 +286,7 @@ function HomePage() {
 
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={handleRegister}
                 className="button-base"
               >
