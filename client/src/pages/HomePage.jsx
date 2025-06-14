@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./HomePage.css";
 
 function HomePage() {
-  const [loginEmail, setLoginEmail] = useState("");
+  const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
   const [showRegisterModal, setShowRegisterModal] = useState(false);
@@ -23,6 +23,23 @@ function HomePage() {
     setPasswordError("");
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setShowRegisterModal(false);
+        resetRegisterForm();
+      }
+    };
+
+    if (showRegisterModal) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showRegisterModal]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -32,7 +49,7 @@ function HomePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: loginEmail,
+          username: loginUsername,
           password: loginPassword,
         }),
       });
@@ -138,13 +155,13 @@ function HomePage() {
             </button>
           </div>
           <div className="auth-sub-box">
-            <h2>Already have an account?</h2>
+            <h2>Log in</h2>
             <div className="login-form">
               <input
-                type="email"
-                placeholder="Email"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
+                type="text"
+                placeholder="Username"
+                value={loginUsername}
+                onChange={(e) => setLoginUsername(e.target.value)}
                 required
               />
               <input

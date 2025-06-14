@@ -27,8 +27,8 @@ router.post(
     try {
       // Check if user exists
       const userCheck = await pool.query(
-        "SELECT * FROM users WHERE email = $1",
-        [email]
+        "SELECT * FROM users WHERE username = $1",
+        [username]
       );
       if (userCheck.rows.length > 0) {
         return res.status(400).json({ message: "User already exists" });
@@ -56,7 +56,7 @@ router.post(
 router.post(
   "/login",
   [
-    body("email").isEmail().withMessage("Valid email is required"),
+    body("username").notEmpty().withMessage("Username is required"),
     body("password").notEmpty().withMessage("Password is required"),
   ],
   async (req, res) => {
@@ -65,21 +65,20 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     try {
-      // Find user
       const userResult = await pool.query(
-        "SELECT * FROM users WHERE email = $1",
-        [email]
+        "SELECT * FROM users WHERE username = $1",
+        [username]
       );
+
       if (userResult.rows.length === 0) {
         return res.status(400).json({ message: "Invalid credentials" });
       }
 
       const user = userResult.rows[0];
 
-      // Compare password
       const isMatch = await bcrypt.compare(password, user.password_hash);
       if (!isMatch) {
         return res.status(400).json({ message: "Invalid credentials" });
