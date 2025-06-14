@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import "./HomePage.css";
 
 function HomePage() {
@@ -11,6 +10,18 @@ function HomePage() {
   const [registerName, setRegisterName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
+  const resetRegisterForm = () => {
+    setRegisterName("");
+    setRegisterEmail("");
+    setRegisterPassword("");
+    setNameError("");
+    setEmailError("");
+    setPasswordError("");
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -42,6 +53,28 @@ function HomePage() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    setNameError("");
+    setEmailError("");
+    setPasswordError("");
+
+    const errors = [];
+    if (!registerName.trim()) errors.push("Username is required");
+    if (!registerEmail.trim() || !/^\S+@\S+\.\S+$/.test(registerEmail))
+      errors.push("Valid email is required");
+    if (!registerPassword || registerPassword.length < 6)
+      errors.push("Password must be at least 6 characters long");
+
+    if (errors.length > 0) {
+      if (errors.includes("Username is required"))
+        setNameError("Username is required.");
+      if (errors.includes("Valid email is required"))
+        setEmailError("Valid email is required.");
+      if (errors.includes("Password must be at least 6 characters long"))
+        setPasswordError("Password must be at least 6 characters long.");
+      return;
+    }
+
     try {
       const response = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
@@ -60,29 +93,26 @@ function HomePage() {
         console.log("Registration successful:", data);
         alert("Registration successful! You can now log in.");
         setShowRegisterModal(false);
-        setRegisterName("");
-        setRegisterEmail("");
-        setRegisterPassword("");
+        resetRegisterForm();
       } else {
         const errorData = await response.json();
         console.error("Registration failed:", errorData);
 
-        // Show specific message if available
         if (errorData.message) {
-          alert(`Registration failed: ${errorData.message}`);
+          setNameError(errorData.message);
         } else if (errorData.errors) {
-          alert(
-            `Registration failed: ${errorData.errors
-              .map((err) => err.msg)
-              .join(", ")}`
-          );
+          errorData.errors.forEach((err) => {
+            if (err.msg.includes("Username")) setNameError(err.msg);
+            if (err.msg.includes("email")) setEmailError(err.msg);
+            if (err.msg.includes("Password")) setPasswordError(err.msg);
+          });
         } else {
-          alert("Registration failed. Please try again.");
+          setNameError("Registration failed. Please try again.");
         }
       }
     } catch (err) {
       console.error("Error during registration:", err);
-      alert("An error occurred during registration.");
+      setNameError("An error occurred during registration.");
     }
   };
 
@@ -137,40 +167,55 @@ function HomePage() {
       </div>
 
       {showRegisterModal && (
-        <div className="register-modal">
-          <div className="register-modal-content">
-            <h2>Register an Account</h2>
+        <div className="modal-overlay">
+          <div className="register-modal">
+            <h2
+              className="home-title"
+              style={{ fontSize: "2rem", marginBottom: "10px" }}
+            >
+              Register an Account
+            </h2>
+
             <input
               type="text"
-              placeholder="Name"
               value={registerName}
               onChange={(e) => setRegisterName(e.target.value)}
-              required
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={registerEmail}
-              onChange={(e) => setRegisterEmail(e.target.value)}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={registerPassword}
-              onChange={(e) => setRegisterPassword(e.target.value)}
-              required
+              placeholder={nameError ? nameError : "Username"}
+              className={nameError ? "input-error" : ""}
             />
 
-            <button className="home-button" onClick={handleRegister}>
-              Register
-            </button>
-            <button
-              className="home-button"
-              onClick={() => setShowRegisterModal(false)}
-            >
-              Close
-            </button>
+            <input
+              type="email"
+              value={registerEmail}
+              onChange={(e) => setRegisterEmail(e.target.value)}
+              placeholder={emailError ? emailError : "Email"}
+              className={emailError ? "input-error" : ""}
+            />
+
+            <input
+              type="password"
+              value={registerPassword}
+              onChange={(e) => setRegisterPassword(e.target.value)}
+              placeholder={passwordError ? passwordError : "Password"}
+              className={passwordError ? "input-error" : ""}
+            />
+
+            <div className="modal-buttons">
+              <button
+                type="button"
+                className="modal-back-button"
+                onClick={() => {
+                  setShowRegisterModal(false);
+                  resetRegisterForm();
+                }}
+              >
+                Back
+              </button>
+
+              <button type="button" onClick={handleRegister}>
+                Register
+              </button>
+            </div>
           </div>
         </div>
       )}
