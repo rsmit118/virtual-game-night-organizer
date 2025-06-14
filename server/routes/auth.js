@@ -26,12 +26,22 @@ router.post(
 
     try {
       // Check if user exists
-      const userCheck = await pool.query(
-        "SELECT * FROM users WHERE username = $1",
-        [username]
+      const existingUser = await pool.query(
+        "SELECT * FROM users WHERE username = $1 OR email = $2",
+        [username, email]
       );
-      if (userCheck.rows.length > 0) {
-        return res.status(400).json({ message: "User already exists" });
+
+      if (existingUser.rows.length > 0) {
+        const taken = existingUser.rows[0];
+        if (taken.username === username && taken.email === email) {
+          return res
+            .status(400)
+            .json({ message: "Username and email already in use." });
+        } else if (taken.username === username) {
+          return res.status(400).json({ message: "Username already in use." });
+        } else if (taken.email === email) {
+          return res.status(400).json({ message: "Email already in use." });
+        }
       }
 
       // Hash password

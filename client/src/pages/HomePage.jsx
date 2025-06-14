@@ -13,6 +13,8 @@ function HomePage() {
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [toastMessages, setToastMessages] = useState([]);
+  const [exitingToastIndexes, setExitingToastIndexes] = useState([]);
 
   const resetRegisterForm = () => {
     setRegisterName("");
@@ -21,6 +23,21 @@ function HomePage() {
     setNameError("");
     setEmailError("");
     setPasswordError("");
+  };
+
+  const removeToast = (id) => {
+    setToastMessages((prev) => prev.filter((msg) => msg.id !== id));
+    setExitingToastIndexes((prev) => prev.filter((eid) => eid !== id));
+  };
+
+  const showToast = (message) => {
+    const id = Date.now();
+    setToastMessages((prev) => [...prev, { id, text: message }]);
+
+    setTimeout(() => {
+      setExitingToastIndexes((prev) => [...prev, id]);
+      setTimeout(() => removeToast(id), 300);
+    }, 3000);
   };
 
   useEffect(() => {
@@ -60,11 +77,11 @@ function HomePage() {
         window.location.href = "/game-nights";
       } else {
         console.error("Login failed");
-        alert("Login failed. Please check your credentials.");
+        showToast("Login failed. Please check your credentials.");
       }
     } catch (err) {
       console.error("Error during login:", err);
-      alert("An error occurred during login.");
+      showToast("An error occurred during login.");
     }
   };
 
@@ -89,6 +106,7 @@ function HomePage() {
         setEmailError("Valid email is required.");
       if (errors.includes("Password must be at least 6 characters long"))
         setPasswordError("Password must be at least 6 characters long.");
+      errors.forEach((err) => showToast(err));
       return;
     }
 
@@ -108,7 +126,7 @@ function HomePage() {
       if (response.ok) {
         const data = await response.json();
         console.log("Registration successful:", data);
-        alert("Registration successful! You can now log in.");
+        showToast("Registration successful! You can now log in.");
         setShowRegisterModal(false);
         resetRegisterForm();
       } else {
@@ -116,12 +134,19 @@ function HomePage() {
         console.error("Registration failed:", errorData);
 
         if (errorData.message) {
-          setNameError(errorData.message);
+          if (errorData.message.includes("Username")) {
+            setNameError(errorData.message);
+          }
+          if (errorData.message.includes("Email")) {
+            setEmailError(errorData.message);
+          }
+          showToast(errorData.message);
         } else if (errorData.errors) {
           errorData.errors.forEach((err) => {
             if (err.msg.includes("Username")) setNameError(err.msg);
             if (err.msg.includes("email")) setEmailError(err.msg);
             if (err.msg.includes("Password")) setPasswordError(err.msg);
+            showToast(err.msg);
           });
         } else {
           setNameError("Registration failed. Please try again.");
@@ -135,64 +160,79 @@ function HomePage() {
 
   return (
     <div className="home-container">
-      <div className="home-content-box">
-        <nav className="home-nav">
-          <a href="/">Home</a>
-          <a href="/game-nights">Game Nights</a>
-        </nav>
-        <h1 className="home-title">Welcome to Virtual Game Night Organizer!</h1>
-        <p className="home-description">
-          Plan, organize, and manage your game nights with ease. Create events,
-          invite participants, and keep track of all your game night activities.
-          Get started now by registering for an account or logging in.
-        </p>
+      <div className="content-wrapper">
+        <div className="home-content-box">
+          <nav className="home-nav">
+            <a href="/">Home</a>
+            <a href="/game-nights">Game Nights</a>
+          </nav>
+          <h1 className="home-title">
+            Welcome to Virtual Game Night Organizer!
+          </h1>
+          <p className="home-description">
+            Plan, organize, and manage your game nights with ease. Create
+            events, invite participants, and keep track of all your game night
+            activities. Get started now by registering for an account or logging
+            in.
+          </p>
 
-        <div className="auth-box">
-          <div className="auth-sub-box">
-            <h2>Log in</h2>
-            <form className="login-form" onSubmit={handleLogin}>
-              <input
-                type="text"
-                placeholder="Username"
-                value={loginUsername}
-                onChange={(e) => setLoginUsername(e.target.value)}
-                required
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                required
-              />
-              <button type="submit" className="home-button">
-                Login
+          <div className="auth-box">
+            <div className="auth-sub-box">
+              <h2>Log in</h2>
+              <form className="login-form" onSubmit={handleLogin}>
+                <input
+                  type="text"
+                  placeholder="Username"
+                  value={loginUsername}
+                  onChange={(e) => setLoginUsername(e.target.value)}
+                  required
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                />
+                <button type="submit" className="home-button button-base">
+                  Login
+                </button>
+              </form>
+            </div>
+            <p className="or">or</p>
+            <div className="auth-sub-box">
+              <h2>Make an Account</h2>
+              <button
+                type="button"
+                className="home-button button-base"
+                onClick={() => setShowRegisterModal(true)}
+              >
+                Register
               </button>
-            </form>
-          </div>
-          <p className="or">or</p>
-          <div className="auth-sub-box">
-            <h2>Make an Account</h2>
-            <button
-              type="button"
-              className="home-button"
-              onClick={() => setShowRegisterModal(true)}
-            >
-              Register
-            </button>
+            </div>
           </div>
         </div>
+        {toastMessages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`true-toast ${
+              exitingToastIndexes.includes(msg.id) ? "toast-exit" : ""
+            }`}
+            role="alert"
+            onClick={() => {
+              setExitingToastIndexes((prev) => [...prev, msg.id]);
+              setTimeout(() => removeToast(msg.id), 300);
+            }}
+          >
+            <span style={{ fontWeight: "bold", fontSize: "1.25rem" }}>⚠️</span>
+            {msg.text}
+          </div>
+        ))}
       </div>
-
       {showRegisterModal && (
         <div className="modal-overlay">
           <div className="register-modal">
-            <h2
-              className="home-title"
-              style={{ fontSize: "2rem", marginBottom: "10px" }}
-            >
-              Register an Account
-            </h2>
+            <h2 className="home-title modal-version">Register an Account</h2>
 
             <input
               type="text"
@@ -221,7 +261,7 @@ function HomePage() {
             <div className="modal-buttons">
               <button
                 type="button"
-                className="modal-back-button"
+                className="modal-back-button button-base"
                 onClick={() => {
                   setShowRegisterModal(false);
                   resetRegisterForm();
@@ -230,7 +270,11 @@ function HomePage() {
                 Back
               </button>
 
-              <button type="button" onClick={handleRegister}>
+              <button
+                type="button"
+                onClick={handleRegister}
+                className="button-base"
+              >
                 Register
               </button>
             </div>
