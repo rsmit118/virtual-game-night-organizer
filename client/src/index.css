@@ -15,32 +15,5 @@ body {
   margin: 0;
   background-color: #000;
   color: #fff;
-}
-
-nav {
-  position: fixed;
-  top: 40px;
-  left: 64.9%;
-  background-color: transparent;
-  padding: 0;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  z-index: 10;
-}
-
-nav a {
-  color: #00bfff;
-  margin-left: 44px;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 1.2rem;
-  letter-spacing: 0.05em;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-nav a:hover {
-  color: #ffffff;
-  transform: scale(1.2) rotate(-2deg);
-  text-decoration: underline;
+  overflow-x: hidden;
 }

@@ -136,6 +136,10 @@ function HomePage() {
   return (
     <div className="home-container">
       <div className="home-content-box">
+        <nav className="home-nav">
+          <a href="/">Home</a>
+          <a href="/game-nights">Game Nights</a>
+        </nav>
         <h1 className="home-title">Welcome to Virtual Game Night Organizer!</h1>
         <p className="home-description">
           Plan, organize, and manage your game nights with ease. Create events,
@@ -144,16 +148,6 @@ function HomePage() {
         </p>
 
         <div className="auth-box">
-          <div className="auth-sub-box">
-            <h2>Need to register?</h2>
-            <button
-              type="button"
-              className="home-button"
-              onClick={() => setShowRegisterModal(true)}
-            >
-              Register
-            </button>
-          </div>
           <div className="auth-sub-box">
             <h2>Log in</h2>
             <div className="login-form">
@@ -179,6 +173,16 @@ function HomePage() {
                 Login
               </button>
             </div>
+          </div>
+          <div className="auth-sub-box">
+            <h2>Need to register?</h2>
+            <button
+              type="button"
+              className="home-button"
+              onClick={() => setShowRegisterModal(true)}
+            >
+              Register
+            </button>
           </div>
         </div>
       </div>
