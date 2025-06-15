@@ -1,19 +1,30 @@
-// /server/models/User.js
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/database");
 
-class User {
-  constructor(userId, username, email) {
-    this.userId = userId;
-    this.username = username;
-    this.email = email;
-  }
-
-  getRole() {
-    return "user";
-  }
-
-  getSummary() {
-    return `${this.username} (${this.email})`;
-  }
-}
+const User = sequelize.define("User", {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  username: {
+    type: DataTypes.STRING,
+    unique: true,
+    allowNull: false,
+  },
+  email: {
+    type: DataTypes.STRING,
+    unique: true,
+    allowNull: false,
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  role: {
+    type: DataTypes.ENUM("user", "organizer"),
+    defaultValue: "user",
+  },
+});
 
 module.exports = User;

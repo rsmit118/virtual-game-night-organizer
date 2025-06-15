@@ -1,12 +1,14 @@
-// /server/routes/auth.js
+require("dotenv").config();
 
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 const bcrypt = require("bcryptjs");
 const { body, validationResult } = require("express-validator");
+const jwt = require("jsonwebtoken");
 
-// POST /register
+const JWT_SECRET = process.env.JWT_SECRET;
+
 router.post(
   "/register",
   [
@@ -25,7 +27,6 @@ router.post(
     const { username, email, password } = req.body;
 
     try {
-      // Check if user exists
       const existingUser = await pool.query(
         "SELECT * FROM users WHERE username = $1 OR email = $2",
         [username, email]
@@ -44,11 +45,9 @@ router.post(
         }
       }
 
-      // Hash password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      // Insert user
       await pool.query(
         "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)",
         [username, email, hashedPassword]
@@ -62,7 +61,6 @@ router.post(
   }
 );
 
-// POST /login
 router.post(
   "/login",
   [
@@ -94,10 +92,16 @@ router.post(
         return res.status(400).json({ message: "Invalid credentials" });
       }
 
+      const payload = {
+        userId: user.user_id,
+        username: user.username,
+      };
+
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
+
       res.json({
         message: "Login successful",
-        user_id: user.user_id,
-        username: user.username,
+        token,
       });
     } catch (err) {
       console.error(err);
@@ -106,7 +110,6 @@ router.post(
   }
 );
 
-// Get all organizers
 router.get("/organizers", async (req, res) => {
   try {
     const result = await pool.query(
@@ -119,36 +122,6 @@ router.get("/organizers", async (req, res) => {
     console.error(err);
     res.status(500).send("Server error");
   }
-});
-
-// Demo: Users with polymorphism
-router.get("/demo/users", (req, res) => {
-  const User = require("../models/User");
-  const Organizer = require("../models/Organizer");
-
-  const user = new User(1, "RegularUser", "user@example.com");
-  const organizer = new Organizer(
-    2,
-    "GameMaster",
-    "organizer@example.com",
-    1001
-  );
-
-  const users = [
-    {
-      type: "User",
-      role: user.getRole(),
-      summary: user.getSummary(),
-    },
-    {
-      type: "Organizer",
-      role: organizer.getRole(),
-      summary: organizer.getSummary(),
-      organizerSummary: organizer.getOrganizerSummary(),
-    },
-  ];
-
-  res.json(users);
 });
 
 module.exports = router;
