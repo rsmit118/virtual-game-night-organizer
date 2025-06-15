@@ -191,6 +191,7 @@ function HomePage() {
           <nav className="home-nav">
             <a href="/">Home</a>
             <a href="/game-nights">Game Nights</a>
+            <a href="/profile">Profile</a>
           </nav>
           <h1 className="home-title">
             Welcome to Virtual Game Night Organizer!

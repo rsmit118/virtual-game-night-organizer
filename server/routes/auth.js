@@ -9,6 +9,8 @@ const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+const authorize = require("../middleware/authorize");
+
 router.post(
   "/register",
   [
@@ -118,6 +120,24 @@ router.get("/organizers", async (req, res) => {
     );
 
     res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
+
+router.get("/me", authorize, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT user_id, username, email FROM users WHERE user_id = $1",
+      [req.user.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
     res.status(500).send("Server error");
