@@ -339,6 +339,12 @@
   animation: toastFadeOut 0.3s ease-out forwards;
 }
 
+.toast-success {
+  background-color: #4caf50;
+  color: white;
+  border-left: 6px solid #388e3c;
+}
+
 .content-wrapper {
   position: relative;
   display: flex;

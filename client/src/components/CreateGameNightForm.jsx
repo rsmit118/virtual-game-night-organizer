@@ -1,12 +1,40 @@
-import React, { useState } from "react";
+import { jwtDecode } from "jwt-decode";
+import React, { useEffect, useState } from "react";
 
 function CreateGameNightForm({ onGameNightCreated }) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     event_date: "",
-    organizer_id: 1,
+    organizer_id: "",
   });
+
+  useEffect(() => {
+    const userId = getUserIdFromToken();
+    if (!userId) return;
+
+    setFormData((prevData) => ({
+      ...prevData,
+      organizer_id: userId,
+    }));
+  }, []);
+
+  function getUserIdFromToken() {
+    const token = localStorage.getItem("token");
+
+    if (!token || token.split(".").length !== 3) {
+      console.warn("Invalid or missing token:", token);
+      return null;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      return decoded.userId;
+    } catch (err) {
+      console.error("Token decode failed:", err);
+      return null;
+    }
+  }
 
   const [message, setMessage] = useState("");
 
@@ -16,10 +44,15 @@ function CreateGameNightForm({ onGameNightCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem("token");
     try {
+      console.log("Token being sent:", token);
       const response = await fetch("http://localhost:5000/api/game_nights", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(formData),
       });
 
@@ -66,13 +99,6 @@ function CreateGameNightForm({ onGameNightCreated }) {
           type="datetime-local"
           name="event_date"
           value={formData.event_date}
-          onChange={handleChange}
-        />
-        <input
-          type="number"
-          name="organizer_id"
-          placeholder="Organizer ID"
-          value={formData.organizer_id}
           onChange={handleChange}
         />
         <button type="submit">Create</button>

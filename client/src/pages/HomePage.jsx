@@ -31,11 +31,11 @@ function HomePage() {
     setExitingToastIndexes((prev) => prev.filter((eid) => eid !== id));
   };
 
-  const showToast = (message) => {
+  const showToast = (message, type = "error") => {
     if (toastMessages.some((msg) => msg.text === message)) return;
 
     const id = `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-    const newToast = { id, text: message };
+    const newToast = { id, text: message, type };
 
     setToastMessages((prev) => [...prev, newToast]);
 
@@ -81,6 +81,9 @@ function HomePage() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log("Received token:", data.token);
+        console.log("Login response JSON:", data);
+        localStorage.setItem("token", data.token);
         console.log("Login successful:", data);
         window.location.href = "/game-nights";
       } else {
@@ -138,7 +141,7 @@ function HomePage() {
       if (response.ok) {
         const data = await response.json();
         console.log("Registration successful:", data);
-        showToast("Registration successful! You can now log in.");
+        showToast("Registration successful! You can now log in.", "success");
         setShowRegisterModal(false);
         resetRegisterForm();
       } else {
@@ -230,8 +233,8 @@ function HomePage() {
           <div
             key={msg.id}
             className={`true-toast ${
-              exitingToastIndexes.includes(msg.id) ? "toast-exit" : ""
-            }`}
+              msg.type === "success" ? "toast-success" : ""
+            } ${exitingToastIndexes.includes(msg.id) ? "toast-exit" : ""}`}
             role="alert"
             onClick={() => {
               setExitingToastIndexes((prev) => [...prev, msg.id]);
@@ -247,52 +250,59 @@ function HomePage() {
         <div className="modal-overlay">
           <div className="register-modal">
             <h2 className="home-title modal-version">Register an Account</h2>
+            <form
+              onSubmit={handleRegister}
+              style={{
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "25px",
+              }}
+            >
+              <input
+                type="text"
+                value={registerName}
+                onChange={(e) => setRegisterName(e.target.value)}
+                placeholder={nameError ? nameError : "Username"}
+                className={nameError ? "input-error" : ""}
+              />
+              <input
+                type="email"
+                value={registerEmail}
+                onChange={(e) => setRegisterEmail(e.target.value)}
+                placeholder={emailError ? emailError : "Email"}
+                className={emailError ? "input-error" : ""}
+              />
+              <input
+                type="password"
+                value={registerPassword}
+                onChange={(e) => setRegisterPassword(e.target.value)}
+                placeholder={passwordError ? passwordError : "Password"}
+                className={passwordError ? "input-error" : ""}
+              />
+              <div className="modal-buttons">
+                <button
+                  type="button"
+                  className="modal-back-button button-base"
+                  onClick={() => {
+                    setShowRegisterModal(false);
+                    resetRegisterForm();
+                  }}
+                >
+                  Back
+                </button>
 
-            <input
-              type="text"
-              value={registerName}
-              onChange={(e) => setRegisterName(e.target.value)}
-              placeholder={nameError ? nameError : "Username"}
-              className={nameError ? "input-error" : ""}
-            />
-
-            <input
-              type="email"
-              value={registerEmail}
-              onChange={(e) => setRegisterEmail(e.target.value)}
-              placeholder={emailError ? emailError : "Email"}
-              className={emailError ? "input-error" : ""}
-            />
-
-            <input
-              type="password"
-              value={registerPassword}
-              onChange={(e) => setRegisterPassword(e.target.value)}
-              placeholder={passwordError ? passwordError : "Password"}
-              className={passwordError ? "input-error" : ""}
-            />
-
-            <div className="modal-buttons">
-              <button
-                type="button"
-                className="modal-back-button button-base"
-                onClick={() => {
-                  setShowRegisterModal(false);
-                  resetRegisterForm();
-                }}
-              >
-                Back
-              </button>
-
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={handleRegister}
-                className="button-base"
-              >
-                Register
-              </button>
-            </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  onClick={handleRegister}
+                  className="button-base"
+                >
+                  Register
+                </button>
+              </div>{" "}
+            </form>
           </div>
         </div>
       )}
