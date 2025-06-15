@@ -144,4 +144,90 @@ router.get("/me", authorize, async (req, res) => {
   }
 });
 
+router.patch("/me", authorize, async (req, res) => {
+  const { username, email } = req.body;
+
+  if (!username && !email) {
+    return res.status(400).json({ message: "Nothing to update." });
+  }
+
+  try {
+    const userId = req.user.userId;
+    const updates = [];
+    const values = [];
+    let idx = 1;
+
+    if (username) {
+      updates.push(`username = $${idx++}`);
+      values.push(username);
+    }
+
+    if (email) {
+      updates.push(`email = $${idx++}`);
+      values.push(email);
+    }
+
+    values.push(userId);
+
+    const result = await pool.query(
+      `UPDATE users SET ${updates.join(
+        ", "
+      )} WHERE user_id = $${idx} RETURNING user_id, username, email`,
+      values
+    );
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error updating profile." });
+  }
+});
+
+router.patch("/change-password", authorize, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword || newPassword.length < 6) {
+    return res.status(400).json({
+      message:
+        "Both current and new passwords are required. New password must be at least 6 characters.",
+    });
+  }
+
+  try {
+    const userId = req.user.userId;
+
+    // Fetch current hashed password
+    const result = await pool.query(
+      "SELECT password_hash FROM users WHERE user_id = $1",
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = result.rows[0];
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const newHashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password
+    await pool.query("UPDATE users SET password_hash = $1 WHERE user_id = $2", [
+      newHashedPassword,
+      userId,
+    ]);
+
+    res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    console.error("Error changing password:", err);
+    res.status(500).json({ message: "Server error while changing password" });
+  }
+});
+
 module.exports = router;
