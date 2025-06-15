@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
 import "./HomePage.css";
 
 function HomePage() {
@@ -189,9 +190,15 @@ function HomePage() {
       <div className="content-wrapper">
         <div className="home-content-box">
           <nav className="home-nav">
-            <a href="/">Home</a>
-            <a href="/game-nights">Game Nights</a>
-            <a href="/profile">Profile</a>
+            <div className="nav-left">
+              <NavLink to="/" end>
+                Home
+              </NavLink>
+            </div>
+            <div className="nav-right">
+              <NavLink to="/game-nights">Game Nights</NavLink>
+              <NavLink to="/profile">Profile</NavLink>
+            </div>
           </nav>
           <h1 className="home-title">
             Welcome to Virtual Game Night Organizer!
