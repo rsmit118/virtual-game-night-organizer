@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import "./HomePage.css";
 
@@ -52,7 +53,6 @@ function HomePage() {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") {
         setShowRegisterModal(false);
-        resetRegisterForm();
       }
     };
 
@@ -63,6 +63,15 @@ function HomePage() {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
+  }, [showRegisterModal]);
+
+  useEffect(() => {
+    if (!showRegisterModal) {
+      const timeout = setTimeout(() => {
+        resetRegisterForm();
+      }, 500);
+      return () => clearTimeout(timeout);
+    }
   }, [showRegisterModal]);
 
   const handleLogin = async (e) => {
@@ -246,66 +255,94 @@ function HomePage() {
           </div>
         ))}
       </div>
-      {showRegisterModal && (
-        <div className="modal-overlay">
-          <div className="register-modal">
-            <h2 className="home-title modal-version">Register an Account</h2>
-            <form
-              onSubmit={handleRegister}
-              style={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "25px",
+      <AnimatePresence>
+        {showRegisterModal && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.2 } }}
+            exit={{ opacity: 0, transition: { duration: 0.3 } }}
+          >
+            <motion.div
+              className="register-modal"
+              initial={{ scale: 0.8, opacity: 0, y: -50 }}
+              animate={{
+                scale: [0.8, 1.02, 0.98, 1],
+                opacity: 1,
+                y: 0,
+                rotate: [0, 2, -2, 0],
+                transition: {
+                  duration: 0.4,
+                  ease: "easeOut",
+                },
+              }}
+              exit={{
+                scale: [1, 1.05, 0.8, 0],
+                opacity: [1, 0.8, 0],
+                rotate: [0, -3, 3, -10],
+                y: [0, -10, 30],
+                transition: {
+                  duration: 0.5,
+                  ease: "easeInOut",
+                },
               }}
             >
-              <input
-                type="text"
-                value={registerName}
-                onChange={(e) => setRegisterName(e.target.value)}
-                placeholder={nameError ? nameError : "Username"}
-                className={nameError ? "input-error" : ""}
-              />
-              <input
-                type="email"
-                value={registerEmail}
-                onChange={(e) => setRegisterEmail(e.target.value)}
-                placeholder={emailError ? emailError : "Email"}
-                className={emailError ? "input-error" : ""}
-              />
-              <input
-                type="password"
-                value={registerPassword}
-                onChange={(e) => setRegisterPassword(e.target.value)}
-                placeholder={passwordError ? passwordError : "Password"}
-                className={passwordError ? "input-error" : ""}
-              />
-              <div className="modal-buttons">
-                <button
-                  type="button"
-                  className="modal-back-button button-base"
-                  onClick={() => {
-                    setShowRegisterModal(false);
-                    resetRegisterForm();
-                  }}
-                >
-                  Back
-                </button>
+              <h2 className="home-title modal-version">Register an Account</h2>
+              <form
+                onSubmit={handleRegister}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "25px",
+                }}
+              >
+                <input
+                  type="text"
+                  value={registerName}
+                  onChange={(e) => setRegisterName(e.target.value)}
+                  placeholder={nameError ? nameError : "Username"}
+                  className={nameError ? "input-error" : ""}
+                />
+                <input
+                  type="email"
+                  value={registerEmail}
+                  onChange={(e) => setRegisterEmail(e.target.value)}
+                  placeholder={emailError ? emailError : "Email"}
+                  className={emailError ? "input-error" : ""}
+                />
+                <input
+                  type="password"
+                  value={registerPassword}
+                  onChange={(e) => setRegisterPassword(e.target.value)}
+                  placeholder={passwordError ? passwordError : "Password"}
+                  className={passwordError ? "input-error" : ""}
+                />
+                <div className="modal-buttons">
+                  <button
+                    type="button"
+                    className="modal-back-button button-base"
+                    onClick={() => {
+                      setShowRegisterModal(false);
+                    }}
+                  >
+                    Back
+                  </button>
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  onClick={handleRegister}
-                  className="button-base"
-                >
-                  Register
-                </button>
-              </div>{" "}
-            </form>
-          </div>
-        </div>
-      )}
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="button-base"
+                  >
+                    Register
+                  </button>
+                </div>{" "}
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
