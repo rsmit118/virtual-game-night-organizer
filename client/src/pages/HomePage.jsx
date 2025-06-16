@@ -115,7 +115,7 @@ function HomePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: loginUsername,
+          username: loginUsername.toLowerCase(),
           password: loginPassword,
         }),
       });

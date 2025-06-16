@@ -41,12 +41,15 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { username, email, password } = req.body;
+    const usernameRaw = req.body.username;
+    const usernameLc = usernameRaw.toLowerCase();
+    const email = req.body.email.toLowerCase();
+    const password = req.body.password;
 
     try {
       const existingUser = await pool.query(
-        "SELECT * FROM users WHERE username = $1 OR email = $2",
-        [username, email]
+        "SELECT * FROM users WHERE username_lc = $1 OR email = $2",
+        [usernameLc, email]
       );
 
       if (existingUser.rows.length > 0) {
@@ -66,8 +69,8 @@ router.post(
       const hashedPassword = await bcrypt.hash(password, salt);
 
       const result = await pool.query(
-        "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING user_id, username",
-        [username, email, hashedPassword]
+        "INSERT INTO users (username, username_lc, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING user_id, username",
+        [usernameRaw, usernameLc, email, hashedPassword]
       );
 
       const user = result.rows[0];
@@ -103,12 +106,13 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { username, password } = req.body;
+    const usernameLc = req.body.username.toLowerCase();
+    const password = req.body.password;
 
     try {
       const userResult = await pool.query(
-        "SELECT * FROM users WHERE username = $1",
-        [username]
+        "SELECT * FROM users WHERE username_lc = $1",
+        [usernameLc]
       );
 
       if (userResult.rows.length === 0) {
