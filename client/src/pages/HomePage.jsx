@@ -252,13 +252,15 @@ function HomePage() {
             <div className="auth-box logged-in-box">
               <div className="auth-sub-box logged-in-sub-box">
                 <h2>Welcome back, {user.username}!</h2>
-                <p>You’re logged in and ready to go.</p>
+                <p>
+                  You’re logged in and ready to see or create gaming events.
+                </p>
                 <div className="full-width-buttons">
                   <NavLink
                     to="/game-nights"
                     className="home-button button-base"
                   >
-                    Go to Game Nights
+                    Game Nights
                   </NavLink>
                   <NavLink to="/profile" className="home-button button-base">
                     Profile

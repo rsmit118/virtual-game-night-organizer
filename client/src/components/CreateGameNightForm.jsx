@@ -78,15 +78,16 @@ function CreateGameNightForm({ onGameNightCreated }) {
   };
 
   return (
-    <div>
-      <h2>Create Game Night</h2>
-      <form onSubmit={handleSubmit}>
+    <div className="game-form-box">
+      <h2 className="game-section-title">Create Game Night</h2>
+      <form onSubmit={handleSubmit} className="game-form">
         <input
           type="text"
           name="title"
           placeholder="Title"
           value={formData.title}
           onChange={handleChange}
+          required
         />
         <input
           type="text"
@@ -94,16 +95,20 @@ function CreateGameNightForm({ onGameNightCreated }) {
           placeholder="Description"
           value={formData.description}
           onChange={handleChange}
+          required
         />
         <input
           type="datetime-local"
           name="event_date"
           value={formData.event_date}
           onChange={handleChange}
+          required
         />
-        <button type="submit">Create</button>
+        <button type="submit" className="button-base">
+          Create
+        </button>
       </form>
-      {message && <p>{message}</p>}
+      {message && <p className="game-message">{message}</p>}
     </div>
   );
 }

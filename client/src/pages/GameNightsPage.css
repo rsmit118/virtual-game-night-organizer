@@ -1,0 +1,257 @@
+.game-nights-container {
+  position: relative;
+  z-index: 0;
+  min-height: 100vh;
+  padding: 100px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100vw;
+  box-sizing: border-box;
+  background-color: transparent;
+}
+
+.game-nights-container::before,
+.game-nights-container::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+}
+
+.game-nights-container::before {
+  background: url("/assets/homepage.jpg") center/cover no-repeat fixed;
+  animation: backgroundZoom 6s ease-out forwards;
+  z-index: -2;
+}
+
+.game-nights-container::after {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+@keyframes backgroundZoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.04);
+  }
+}
+
+.game-nights-content-box {
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 10px 40px 35px;
+  border-radius: 12px;
+  max-width: 1100px;
+  width: 100%;
+  text-align: center;
+  margin-top: 20px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  animation: fadeInUp 0.5s ease-out;
+  position: relative;
+}
+
+@supports (backdrop-filter: blur(8px)) {
+  .game-nights-content-box {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+  }
+}
+
+.game-nav {
+  position: absolute;
+  top: -34px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 32px;
+  z-index: 3;
+}
+
+.game-nav a {
+  font-size: 1.4rem;
+  font-weight: bold;
+  text-decoration: none;
+  color: #00bfff;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.game-nav a.active {
+  color: #fff;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.9);
+  text-decoration: underline;
+}
+
+.game-nav a:hover {
+  color: #fff;
+  transform: scale(1.2) rotate(-2deg);
+  text-decoration: underline;
+}
+
+.nav-left,
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.game-form-box {
+  background: linear-gradient(
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.04)
+  );
+  padding: 20px 30px;
+  border-radius: 10px;
+  max-width: 600px;
+  width: 100%;
+  margin: 24px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@supports (backdrop-filter: blur(6px)) {
+  .game-form-box {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px);
+  }
+}
+
+.game-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.game-form input {
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.game-section-title {
+  color: #00bfff;
+  font-size: 1.8rem;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.game-message {
+  margin-top: 10px;
+  font-size: 1rem;
+  color: #f0f0f0;
+}
+
+.game-list-box {
+  margin-top: 36px;
+  width: 100%;
+}
+
+.game-search-bar {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.game-search-bar input {
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+  width: 300px;
+}
+
+.game-table-wrapper {
+  overflow-x: auto;
+}
+
+.game-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #f0f0f0;
+  text-align: center;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 0.95rem;
+}
+
+.game-table th,
+.game-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.game-table th {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #00bfff;
+}
+
+.game-table tr:last-child td {
+  border-bottom: none;
+}
+
+.small-btn {
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  margin-right: 6px;
+}
+
+.delete-btn {
+  background-color: #eb3636;
+}
+
+.delete-btn:hover {
+  background-color: #ef5350;
+}
+
+.game-edit-box {
+  background-color: rgba(255, 255, 255, 0.04);
+  padding: 20px;
+  border-radius: 10px;
+  margin: 16px auto 32px;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.game-edit-box input {
+  padding: 10px;
+  font-size: 1rem;
+  width: 100%;
+  border-radius: 6px;
+  border: none;
+}
+
+.game-edit-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}

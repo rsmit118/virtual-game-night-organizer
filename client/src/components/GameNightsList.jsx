@@ -121,20 +121,24 @@ function GameNightsList() {
   }, []);
 
   return (
-    <div>
-      <h2>Game Nights Report</h2>
-      <div>
+    <div className="game-list-box">
+      <h2 className="game-section-title">Game Nights Report</h2>
+
+      <div className="game-search-bar">
         <input
           type="text"
           placeholder="Search by Title"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button onClick={handleSearch}>Search</button>
+        <button onClick={handleSearch} className="button-base">
+          Search
+        </button>
       </div>
+
       {editingGameNight && (
-        <div>
-          <h3>Editing Game Night</h3>
+        <div className="game-edit-box">
+          <h3>Edit Game Night</h3>
           <input
             type="text"
             value={editTitle}
@@ -146,44 +150,63 @@ function GameNightsList() {
             value={editDate}
             onChange={(e) => setEditDate(e.target.value)}
           />
-          <button onClick={submitEdit}>Save</button>
-          <button onClick={() => setEditingGameNight(null)}>Cancel</button>
+          <div className="game-edit-buttons">
+            <button onClick={submitEdit} className="button-base">
+              Save
+            </button>
+            <button
+              onClick={() => setEditingGameNight(null)}
+              className="button-base"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
 
-      <table border="1" cellPadding="5" cellSpacing="0">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Event Date</th>
-            <th>Organizer ID</th>
-            <th>Created At</th>
-            <th>Actions</th> {/* Add Actions column */}
-          </tr>
-        </thead>
-        <tbody>
-          {gameNights.map((gn) => (
-            <tr key={gn.game_night_id || gn.title + gn.event_date}>
-              <td>{gn.title}</td>
-              <td>{new Date(gn.event_date).toLocaleString()}</td>
-              <td>{gn.organizer_id}</td>
-              <td>{new Date(gn.created_at).toLocaleString()}</td>
-              <td>
-                {gn.organizer_id === currentUserId ? (
-                  <>
-                    <button onClick={() => handleEdit(gn)}>Edit</button>
-                    <button onClick={() => handleDelete(gn.game_night_id)}>
-                      Delete
-                    </button>
-                  </>
-                ) : (
-                  <em>Not yours</em>
-                )}
-              </td>
+      <div className="game-table-wrapper">
+        <table className="game-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Event Date</th>
+              <th>Organizer ID</th>
+              <th>Created At</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {gameNights.map((gn) => (
+              <tr key={gn.game_night_id || gn.title + gn.event_date}>
+                <td>{gn.title}</td>
+                <td>{new Date(gn.event_date).toLocaleString()}</td>
+                <td>{gn.organizer_id}</td>
+                <td>{new Date(gn.created_at).toLocaleString()}</td>
+                <td>
+                  {gn.organizer_id === currentUserId ? (
+                    <>
+                      <button
+                        onClick={() => handleEdit(gn)}
+                        className="button-base small-btn"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(gn.game_night_id)}
+                        className="button-base small-btn delete-btn"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  ) : (
+                    <em style={{ color: "#aaa" }}>Not yours</em>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
