@@ -11,14 +11,29 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 const authorize = require("../middleware/authorize");
 
+const validatePassword = require("../utils/validatePassword");
+
+const rateLimit = require("express-rate-limit");
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  message: {
+    message: "Too many attempts. Try again in 15 minutes.",
+  },
+});
+
 router.post(
   "/register",
   [
     body("username").notEmpty().withMessage("Username is required"),
     body("email").isEmail().withMessage("Valid email is required"),
     body("password")
-      .isLength({ min: 6 })
-      .withMessage("Password must be at least 6 characters long"),
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/
+      )
+      .withMessage(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+      ),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -50,12 +65,24 @@ router.post(
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      await pool.query(
-        "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)",
+      const result = await pool.query(
+        "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING user_id, username",
         [username, email, hashedPassword]
       );
 
-      res.status(201).json({ message: "User registered successfully" });
+      const user = result.rows[0];
+
+      const payload = {
+        userId: user.user_id,
+        username: user.username,
+      };
+
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
+
+      res.status(201).json({
+        message: "User registered successfully",
+        token,
+      });
     } catch (err) {
       console.error(err);
       res.status(500).send("Server error");
@@ -69,6 +96,7 @@ router.post(
     body("username").notEmpty().withMessage("Username is required"),
     body("password").notEmpty().withMessage("Password is required"),
   ],
+  authLimiter,
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -153,6 +181,33 @@ router.patch("/me", authorize, async (req, res) => {
 
   try {
     const userId = req.user.userId;
+
+    if (username) {
+      const checkUsername = await pool.query(
+        "SELECT user_id FROM users WHERE username = $1 AND user_id != $2",
+        [username, userId]
+      );
+
+      if (checkUsername.rows.length > 0) {
+        return res
+          .status(409)
+          .json({ message: "That username is already in use." });
+      }
+    }
+
+    if (email) {
+      const checkEmail = await pool.query(
+        "SELECT user_id FROM users WHERE email = $1 AND user_id != $2",
+        [email, userId]
+      );
+
+      if (checkEmail.rows.length > 0) {
+        return res
+          .status(409)
+          .json({ message: "That email is already in use." });
+      }
+    }
+
     const updates = [];
     const values = [];
     let idx = 1;
@@ -183,50 +238,53 @@ router.patch("/me", authorize, async (req, res) => {
   }
 });
 
-router.patch("/change-password", authorize, async (req, res) => {
+router.patch("/change-password", authLimiter, authorize, async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
-  if (!currentPassword || !newPassword || newPassword.length < 6) {
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({
+      message: "Both current and new passwords are required.",
+    });
+  }
+
+  if (!validatePassword(newPassword)) {
     return res.status(400).json({
       message:
-        "Both current and new passwords are required. New password must be at least 6 characters.",
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
     });
   }
 
   try {
-    const userId = req.user.userId;
-
-    // Fetch current hashed password
     const result = await pool.query(
       "SELECT password_hash FROM users WHERE user_id = $1",
-      [userId]
+      [req.user.userId]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found." });
     }
 
     const user = result.rows[0];
-
     const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+
     if (!isMatch) {
-      return res.status(401).json({ message: "Current password is incorrect" });
+      return res
+        .status(401)
+        .json({ message: "Current password is incorrect." });
     }
 
-    // Hash new password
     const salt = await bcrypt.genSalt(10);
-    const newHashedPassword = await bcrypt.hash(newPassword, salt);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    // Update password
     await pool.query("UPDATE users SET password_hash = $1 WHERE user_id = $2", [
-      newHashedPassword,
-      userId,
+      hashedPassword,
+      req.user.userId,
     ]);
 
-    res.json({ message: "Password updated successfully" });
+    res.json({ message: "Password changed successfully." });
   } catch (err) {
-    console.error("Error changing password:", err);
-    res.status(500).json({ message: "Server error while changing password" });
+    console.error(err);
+    res.status(500).json({ message: "Error changing password." });
   }
 });
 

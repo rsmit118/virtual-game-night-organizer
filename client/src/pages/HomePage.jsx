@@ -12,6 +12,7 @@ function HomePage() {
   const [registerName, setRegisterName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
+  const [isPasswordValid, setIsPasswordValid] = useState(true);
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -19,6 +20,8 @@ function HomePage() {
   const [exitingToastIndexes, setExitingToastIndexes] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState(null);
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/;
 
   const resetRegisterForm = () => {
     setRegisterName("");
@@ -97,6 +100,7 @@ function HomePage() {
     if (!showRegisterModal) {
       const timeout = setTimeout(() => {
         resetRegisterForm();
+        setIsPasswordValid(true);
       }, 500);
       return () => clearTimeout(timeout);
     }
@@ -125,7 +129,9 @@ function HomePage() {
         window.location.href = "/game-nights";
       } else {
         console.error("Login failed");
-        showToast("Login failed. Please check your credentials.");
+        showToast(
+          "Check that your username and password are spelled correctly. Passwords are case-sensitive."
+        );
       }
     } catch (err) {
       console.error("Error during login:", err);
@@ -147,8 +153,10 @@ function HomePage() {
     if (!registerName.trim()) errors.push("Username is required");
     if (!registerEmail.trim() || !/^\S+@\S+\.\S+$/.test(registerEmail))
       errors.push("Valid email is required");
-    if (!registerPassword || registerPassword.length < 6)
-      errors.push("Password must be at least 6 characters long");
+    if (!registerPassword || !passwordRegex.test(registerPassword))
+      errors.push(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+      );
 
     if (errors.length > 0) {
       if (errors.includes("Username is required"))
@@ -178,9 +186,12 @@ function HomePage() {
       if (response.ok) {
         const data = await response.json();
         console.log("Registration successful:", data);
-        showToast("Registration successful! You can now log in.", "success");
-        setShowRegisterModal(false);
-        resetRegisterForm();
+
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
+
+        window.location.href = "/game-nights";
       } else {
         const errorData = await response.json();
         console.error("Registration failed:", errorData);
@@ -376,12 +387,32 @@ function HomePage() {
                   placeholder={emailError ? emailError : "Email"}
                   className={emailError ? "input-error" : ""}
                 />
+                <small
+                  className="password-hint"
+                  style={{
+                    color: isPasswordValid ? "#ccc" : "#ff4c4c",
+                    fontSize: "12px",
+                    marginTop: "-10px",
+                    marginBottom: "-8px",
+                    display: "block",
+                    textAlign: "left",
+                    width: "100%",
+                    paddingLeft: "6px",
+                  }}
+                >
+                  Must be at least 8 characters and include uppercase,
+                  lowercase, number, and special character.
+                </small>
                 <input
                   type="password"
                   value={registerPassword}
-                  onChange={(e) => setRegisterPassword(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setRegisterPassword(value);
+                    setIsPasswordValid(passwordRegex.test(value));
+                  }}
                   placeholder={passwordError ? passwordError : "Password"}
-                  className={passwordError ? "input-error" : ""}
+                  className={`${passwordError ? "input-error" : ""}`}
                 />
                 <div className="modal-buttons">
                   <button

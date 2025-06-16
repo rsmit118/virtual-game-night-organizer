@@ -367,3 +367,14 @@
   background-color: #ef5350 !important;
   color: white;
 }
+
+.password-hint {
+  font-size: 12px;
+  color: #999;
+  display: block;
+}
+
+.password-hint.invalid {
+  color: #ff4c4c;
+  font-weight: bold;
+}

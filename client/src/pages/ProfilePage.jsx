@@ -18,6 +18,9 @@ const ProfilePage = () => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [toastMessages, setToastMessages] = useState([]);
   const [exitingToastIndexes, setExitingToastIndexes] = useState([]);
+  const [isPasswordValid, setIsPasswordValid] = useState(true);
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/;
 
   const removeToast = (id) => {
     setToastMessages((prev) => prev.filter((msg) => msg.id !== id));
@@ -106,6 +109,7 @@ const ProfilePage = () => {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+      setIsPasswordValid(true);
     }
 
     return () => {
@@ -142,7 +146,15 @@ const ProfilePage = () => {
         showToast("Profile updated successfully.", "success");
       } else {
         const error = await response.json();
-        showToast(error.message || "Failed to update profile.");
+        if (
+          error &&
+          typeof error.message === "string" &&
+          error.message.toLowerCase().includes("username")
+        ) {
+          showToast("That username is already taken.");
+        } else {
+          showToast(error.message || "Failed to update profile.");
+        }
       }
     } catch (err) {
       console.error("Update error:", err);
@@ -159,13 +171,21 @@ const ProfilePage = () => {
   };
 
   const handleChangePassword = async () => {
-    if (newPassword.length < 6) {
-      showToast("New password must be at least 6 characters.");
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      showToast("Please fill in all password fields.", true);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      showToast("New passwords do not match.");
+      showToast("Your passwords do not match.", true);
+      return;
+    }
+
+    if (!passwordRegex.test(newPassword)) {
+      showToast(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+        true
+      );
       return;
     }
 
@@ -390,9 +410,7 @@ const ProfilePage = () => {
                   alignItems: "center",
                 }}
               >
-                <div
-                  style={{ width: "calc(107% - 20px)", marginBottom: "18px" }}
-                >
+                <div style={{ width: "calc(107% - 20px)", marginBottom: "0" }}>
                   <input
                     type="password"
                     value={currentPassword}
@@ -403,12 +421,32 @@ const ProfilePage = () => {
                 </div>
 
                 <div
-                  style={{ width: "calc(107% - 20px)", marginBottom: "18px" }}
+                  style={{
+                    width: "calc(107% - 20px)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "6px",
+                    marginTop: "0",
+                    marginBottom: "16px",
+                  }}
                 >
+                  <small
+                    className={`password-hint ${
+                      !isPasswordValid ? "invalid" : ""
+                    }`}
+                  >
+                    Must be at least 8 characters and include uppercase,
+                    lowercase, number, and special character.
+                  </small>
+
                   <input
                     type="password"
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setNewPassword(value);
+                      setIsPasswordValid(passwordRegex.test(value));
+                    }}
                     placeholder="New Password"
                     className="profile-input"
                   />

@@ -327,6 +327,8 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   animation: toastSlideIn 0.25s ease-out;
   cursor: pointer;
+  text-align: left;
+  justify-content: flex-start;
 }
 
 @keyframes toastSlideIn {
