@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import "./HomePage.css";
 import "./ProfilePage.css";
 
 const ProfilePage = () => {
@@ -139,10 +138,10 @@ const ProfilePage = () => {
   if (!user) return <div className="profile-container">Loading profile...</div>;
 
   return (
-    <div className="home-container">
-      <div className="content-wrapper">
-        <div className="home-content-box">
-          <nav className="home-nav">
+    <div className="profile-container">
+      <div className="profile-wrapper">
+        <div className="profile-content-box">
+          <nav className="profile-nav">
             <div className="nav-left">
               <NavLink to="/" end>
                 Home
@@ -150,15 +149,20 @@ const ProfilePage = () => {
             </div>
             <div className="nav-right">
               <NavLink to="/game-nights">Game Nights</NavLink>
-              <NavLink to="/profile">Profile</NavLink>
+              <NavLink to="/profile" className="active">
+                Profile
+              </NavLink>
             </div>
           </nav>
 
-          <div className="profile-card">
-            <h1>Profile</h1>
+          <h1 className="profile-title">Your Profile</h1>
+          <p className="profile-description">
+            View or update your account information.
+          </p>
 
+          <div className="profile-card">
             {editMode ? (
-              <>
+              <div className="profile-sub-box">
                 <input
                   type="text"
                   value={formUsername}
@@ -179,20 +183,41 @@ const ProfilePage = () => {
                   </button>
                   <button onClick={handleCancel}>Cancel</button>
                 </div>
-              </>
+              </div>
             ) : (
               <>
-                <p>
-                  <strong>Username:</strong> {user.username}
-                </p>
-                <p>
-                  <strong>Email:</strong> {user.email}
-                </p>
+                <div className="profile-sub-box">
+                  <p className="profile-info">
+                    <span className="label">Username:</span>{" "}
+                    <span className="value">{user.username}</span>
+                  </p>
+                </div>
+
+                <div className="profile-sub-box">
+                  <p className="profile-info">
+                    <span className="label">Email:</span>{" "}
+                    <span className="value">{user.email}</span>
+                  </p>
+                </div>
+
+                {!showPasswordForm && (
+                  <div className="profile-sub-box profile-button-box">
+                    <div className="profile-buttons">
+                      <button onClick={() => setEditMode(true)}>
+                        Edit Info
+                      </button>
+                      <button onClick={() => setShowPasswordForm(true)}>
+                        Change Password
+                      </button>
+                      <button onClick={handleLogout}>Log Out</button>
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
-            {showPasswordForm ? (
-              <>
+            {showPasswordForm && (
+              <div className="profile-sub-box">
                 <input
                   type="password"
                   value={currentPassword}
@@ -220,17 +245,7 @@ const ProfilePage = () => {
                     Cancel
                   </button>
                 </div>
-              </>
-            ) : (
-              !editMode && (
-                <div className="profile-buttons">
-                  <button onClick={() => setEditMode(true)}>Edit Info</button>
-                  <button onClick={() => setShowPasswordForm(true)}>
-                    Change Password
-                  </button>
-                  <button onClick={handleLogout}>Log Out</button>
-                </div>
-              )
+              </div>
             )}
           </div>
         </div>
