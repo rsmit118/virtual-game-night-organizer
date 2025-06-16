@@ -1,10 +1,10 @@
+import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "./ProfilePage.css";
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
-  const [editMode, setEditMode] = useState(false);
   const [formUsername, setFormUsername] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -15,6 +15,7 @@ const ProfilePage = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showEditForm, setShowEditForm] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -48,6 +49,22 @@ const ProfilePage = () => {
     fetchUserData();
   }, [navigate]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setShowEditForm(false);
+      }
+    };
+
+    if (showEditForm) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showEditForm]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
@@ -73,7 +90,7 @@ const ProfilePage = () => {
       if (response.ok) {
         const updatedUser = await response.json();
         setUser(updatedUser);
-        setEditMode(false);
+        setShowEditForm(false);
       } else {
         const error = await response.json();
         alert(error.message || "Update failed");
@@ -87,9 +104,9 @@ const ProfilePage = () => {
   };
 
   const handleCancel = () => {
+    setShowEditForm(false);
     setFormUsername(user.username);
     setFormEmail(user.email);
-    setEditMode(false);
   };
 
   const handleChangePassword = async () => {
@@ -161,60 +178,39 @@ const ProfilePage = () => {
           </p>
 
           <div className="profile-card">
-            {editMode ? (
+            <>
               <div className="profile-sub-box">
-                <input
-                  type="text"
-                  value={formUsername}
-                  onChange={(e) => setFormUsername(e.target.value)}
-                  placeholder="Username"
-                  className="profile-input"
-                />
-                <input
-                  type="email"
-                  value={formEmail}
-                  onChange={(e) => setFormEmail(e.target.value)}
-                  placeholder="Email"
-                  className="profile-input"
-                />
-                <div className="profile-buttons">
-                  <button onClick={handleSave} disabled={isSubmitting}>
-                    Save
-                  </button>
-                  <button onClick={handleCancel}>Cancel</button>
-                </div>
+                <p className="profile-info">
+                  <span className="label">Username:</span>{" "}
+                  <span className="value">{user.username}</span>
+                </p>
               </div>
-            ) : (
-              <>
-                <div className="profile-sub-box">
-                  <p className="profile-info">
-                    <span className="label">Username:</span>{" "}
-                    <span className="value">{user.username}</span>
-                  </p>
-                </div>
 
-                <div className="profile-sub-box">
-                  <p className="profile-info">
-                    <span className="label">Email:</span>{" "}
-                    <span className="value">{user.email}</span>
-                  </p>
-                </div>
+              <div className="profile-sub-box">
+                <p className="profile-info">
+                  <span className="label">Email:</span>{" "}
+                  <span className="value">{user.email}</span>
+                </p>
+              </div>
 
-                {!showPasswordForm && (
-                  <div className="profile-sub-box profile-button-box">
-                    <div className="profile-buttons">
-                      <button onClick={() => setEditMode(true)}>
-                        Edit Info
-                      </button>
-                      <button onClick={() => setShowPasswordForm(true)}>
-                        Change Password
-                      </button>
-                      <button onClick={handleLogout}>Log Out</button>
-                    </div>
+              {!showPasswordForm && (
+                <div className="profile-sub-box profile-button-box">
+                  <div className="profile-buttons">
+                    <button
+                      onClick={() => {
+                        setShowEditForm(true);
+                      }}
+                    >
+                      Edit Info
+                    </button>
+                    <button onClick={() => setShowPasswordForm(true)}>
+                      Change Password
+                    </button>
+                    <button onClick={handleLogout}>Log Out</button>
                   </div>
-                )}
-              </>
-            )}
+                </div>
+              )}
+            </>
 
             {showPasswordForm && (
               <div className="profile-sub-box">
@@ -250,6 +246,82 @@ const ProfilePage = () => {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showEditForm && (
+          <motion.div
+            className="profile-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.2 } }}
+            exit={{ opacity: 0, transition: { duration: 0.3 } }}
+          >
+            <motion.div
+              className="profile-modal"
+              initial={{ scale: 0.8, opacity: 0, y: -50 }}
+              animate={{
+                scale: [0.8, 1.02, 0.98, 1],
+                opacity: 1,
+                y: 0,
+                rotate: [0, 2, -2, 0],
+                transition: { duration: 0.4, ease: "easeOut" },
+              }}
+              exit={{
+                scale: [1, 1.05, 0.8, 0],
+                opacity: [1, 0.8, 0],
+                rotate: [0, -3, 3, -10],
+                y: [0, -10, 30],
+                transition: { duration: 0.5, ease: "easeInOut" },
+              }}
+            >
+              <h2 className="profile-modal-version">Edit Your Info</h2>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSave();
+                }}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "25px",
+                }}
+              >
+                <input
+                  type="text"
+                  value={formUsername}
+                  onChange={(e) => setFormUsername(e.target.value)}
+                  placeholder="Username"
+                  className="profile-input"
+                />
+                <input
+                  type="email"
+                  value={formEmail}
+                  onChange={(e) => setFormEmail(e.target.value)}
+                  placeholder="Email"
+                  className="profile-input"
+                />
+                <div className="profile-modal-buttons">
+                  <button
+                    type="button"
+                    className="profile-modal-back-button button-base"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="button-base"
+                  >
+                    Save
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

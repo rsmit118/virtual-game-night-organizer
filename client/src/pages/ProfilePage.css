@@ -8,7 +8,8 @@
   align-items: center;
   width: 100vw;
   box-sizing: border-box;
-  overflow: hidden;
+  height: auto;
+  overflow: visible;
   background-color: transparent;
 }
 
@@ -51,6 +52,7 @@
 
 .profile-content-box {
   position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 1100px;
   margin-top: 20px;
@@ -61,23 +63,13 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.15);
   animation: fadeInUp 0.5s ease-out;
+  min-height: 400px;
 }
 
 @supports (backdrop-filter: blur(8px)) {
   .profile-content-box {
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -208,13 +200,16 @@
 .profile-buttons {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
   gap: 10px;
   margin-bottom: 8px;
+  width: 100%;
+  max-width: 420px;
 }
 
 .profile-buttons button {
-  width: 420px;
+  width: 106%;
   padding: 12px 20px;
   font-size: 1rem;
   background-color: #3f9ddb;
@@ -228,4 +223,69 @@
 .profile-buttons button:hover {
   background-color: #00aaff;
   transform: scale(1.05);
+}
+
+.profile-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.profile-modal {
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 30px 40px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  max-height: 90vh;
+  max-width: 580px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+}
+
+@supports (backdrop-filter: blur(16px)) {
+  .profile-modal {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+}
+
+.profile-modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: clamp(100px, 25vw, 252px);
+  width: 104%;
+  margin-top: 4px;
+  padding-top: 24px;
+}
+
+.profile-modal-buttons button {
+  flex: 1;
+  background-color: #3f9ddb;
+  color: white;
+  border: none;
+}
+
+.profile-modal-buttons button:hover {
+  background-color: #00aaff;
+  transform: scale(1.05);
+}
+
+.profile-modal-buttons button.profile-modal-back-button {
+  background-color: #eb3636;
+}
+
+.profile-modal-buttons button.profile-modal-back-button:hover {
+  background-color: #ef5350;
 }
