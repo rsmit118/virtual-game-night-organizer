@@ -16,6 +16,29 @@ const ProfilePage = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showEditForm, setShowEditForm] = useState(false);
+  const [toastMessages, setToastMessages] = useState([]);
+  const [exitingToastIndexes, setExitingToastIndexes] = useState([]);
+
+  const removeToast = (id) => {
+    setToastMessages((prev) => prev.filter((msg) => msg.id !== id));
+    setExitingToastIndexes((prev) => prev.filter((eid) => eid !== id));
+  };
+
+  const showToast = (message, type = "error") => {
+    if (toastMessages.some((msg) => msg.text === message)) return;
+
+    const id = `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+    const newToast = { id, text: message, type };
+
+    setToastMessages((prev) => [...prev, newToast]);
+
+    setTimeout(() => {
+      setExitingToastIndexes((prev) => [...prev, id]);
+      setTimeout(() => {
+        removeToast(id);
+      }, 300);
+    }, 3000);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -70,7 +93,28 @@ const ProfilePage = () => {
     navigate("/");
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setShowPasswordForm(false);
+      }
+    };
+
+    if (showPasswordForm) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showPasswordForm]);
+
   const handleSave = async () => {
+    if (!formUsername.trim() || !formEmail.trim()) {
+      showToast("Username and email cannot be empty.");
+      return;
+    }
+
     setIsSubmitting(true);
     const token = localStorage.getItem("token");
 
@@ -91,13 +135,14 @@ const ProfilePage = () => {
         const updatedUser = await response.json();
         setUser(updatedUser);
         setShowEditForm(false);
+        showToast("Profile updated successfully.", "success");
       } else {
         const error = await response.json();
-        alert(error.message || "Update failed");
+        showToast(error.message || "Failed to update profile.");
       }
     } catch (err) {
       console.error("Update error:", err);
-      alert("An error occurred while updating.");
+      showToast("An error occurred while updating.");
     }
 
     setIsSubmitting(false);
@@ -111,12 +156,12 @@ const ProfilePage = () => {
 
   const handleChangePassword = async () => {
     if (newPassword.length < 6) {
-      alert("New password must be at least 6 characters.");
+      showToast("New password must be at least 6 characters.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      alert("New passwords do not match.");
+      showToast("New passwords do not match.");
       return;
     }
 
@@ -138,17 +183,17 @@ const ProfilePage = () => {
       const result = await response.json();
 
       if (response.ok) {
-        alert("Password changed successfully.");
+        showToast("Password changed successfully.", "success");
         setShowPasswordForm(false);
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
       } else {
-        alert(result.message || "Failed to change password.");
+        showToast(result.message || "Failed to change password.");
       }
     } catch (err) {
       console.error("Error changing password:", err);
-      alert("An error occurred.");
+      showToast("An error occurred.");
     }
   };
 
@@ -185,64 +230,24 @@ const ProfilePage = () => {
                   <span className="value">{user.username}</span>
                 </p>
               </div>
-
               <div className="profile-sub-box">
                 <p className="profile-info">
                   <span className="label">Email:</span>{" "}
                   <span className="value">{user.email}</span>
                 </p>
               </div>
-
-              {!showPasswordForm && (
-                <div className="profile-sub-box profile-button-box">
-                  <div className="profile-buttons">
-                    <button
-                      onClick={() => {
-                        setShowEditForm(true);
-                      }}
-                    >
-                      Edit Info
-                    </button>
-                    <button onClick={() => setShowPasswordForm(true)}>
-                      Change Password
-                    </button>
-                    <button onClick={handleLogout}>Log Out</button>
-                  </div>
-                </div>
-              )}
-            </>
-
-            {showPasswordForm && (
-              <div className="profile-sub-box">
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Current Password"
-                  className="profile-input"
-                />
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="New Password"
-                  className="profile-input"
-                />
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm New Password"
-                  className="profile-input"
-                />
+              <div className="profile-sub-box profile-button-box">
                 <div className="profile-buttons">
-                  <button onClick={handleChangePassword}>Submit</button>
-                  <button onClick={() => setShowPasswordForm(false)}>
-                    Cancel
+                  <button onClick={() => setShowEditForm(true)}>
+                    Edit Info
                   </button>
+                  <button onClick={() => setShowPasswordForm(true)}>
+                    Change Password
+                  </button>
+                  <button onClick={handleLogout}>Log Out</button>
                 </div>
-              </div>
-            )}
+              </div>{" "}
+            </>
           </div>
         </div>
       </div>
@@ -284,24 +289,42 @@ const ProfilePage = () => {
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: "25px",
                 }}
               >
-                <input
-                  type="text"
-                  value={formUsername}
-                  onChange={(e) => setFormUsername(e.target.value)}
-                  placeholder="Username"
-                  className="profile-input"
-                />
-                <input
-                  type="email"
-                  value={formEmail}
-                  onChange={(e) => setFormEmail(e.target.value)}
-                  placeholder="Email"
-                  className="profile-input"
-                />
-                <div className="profile-modal-buttons">
+                <div
+                  style={{ width: "calc(107% - 20px)", marginBottom: "18px" }}
+                >
+                  <label className="profile-input-label">
+                    Change your username
+                  </label>
+                  <input
+                    type="text"
+                    value={formUsername}
+                    onChange={(e) => setFormUsername(e.target.value)}
+                    placeholder="Username"
+                    className="profile-input"
+                  />
+                </div>
+
+                <div
+                  style={{ width: "calc(107% - 20px)", marginBottom: "10px" }}
+                >
+                  <label className="profile-input-label">
+                    Change your email
+                  </label>
+                  <input
+                    type="email"
+                    value={formEmail}
+                    onChange={(e) => setFormEmail(e.target.value)}
+                    placeholder="Email"
+                    className="profile-input"
+                  />
+                </div>
+
+                <div
+                  className="profile-modal-buttons"
+                  style={{ marginTop: "0px" }}
+                >
                   <button
                     type="button"
                     className="profile-modal-back-button button-base"
@@ -322,6 +345,117 @@ const ProfilePage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {showPasswordForm && (
+          <motion.div
+            className="profile-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.2 } }}
+            exit={{ opacity: 0, transition: { duration: 0.3 } }}
+          >
+            <motion.div
+              className="profile-modal"
+              initial={{ scale: 0.8, opacity: 0, y: -50 }}
+              animate={{
+                scale: [0.8, 1.02, 0.98, 1],
+                opacity: 1,
+                y: 0,
+                rotate: [0, 2, -2, 0],
+                transition: { duration: 0.4, ease: "easeOut" },
+              }}
+              exit={{
+                scale: [1, 1.05, 0.8, 0],
+                opacity: [1, 0.8, 0],
+                rotate: [0, -3, 3, -10],
+                y: [0, -10, 30],
+                transition: { duration: 0.5, ease: "easeInOut" },
+              }}
+            >
+              <h2 className="profile-modal-version">Change Your Password</h2>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleChangePassword();
+                }}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <div
+                  style={{ width: "calc(107% - 20px)", marginBottom: "18px" }}
+                >
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Current Password"
+                    className="profile-input"
+                  />
+                </div>
+
+                <div
+                  style={{ width: "calc(107% - 20px)", marginBottom: "18px" }}
+                >
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="New Password"
+                    className="profile-input"
+                  />
+                </div>
+
+                <div
+                  style={{ width: "calc(107% - 20px)", marginBottom: "10px" }}
+                >
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm New Password"
+                    className="profile-input"
+                  />
+                </div>
+
+                <div
+                  className="profile-modal-buttons"
+                  style={{ marginTop: "0px" }}
+                >
+                  <button
+                    type="button"
+                    className="profile-modal-back-button button-base"
+                    onClick={() => setShowPasswordForm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="button-base">
+                    Submit
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {toastMessages.map((msg) => (
+        <div
+          key={msg.id}
+          className={`true-toast ${
+            msg.type === "success" ? "toast-success" : ""
+          } ${exitingToastIndexes.includes(msg.id) ? "toast-exit" : ""}`}
+          role="alert"
+          onClick={() => {
+            setExitingToastIndexes((prev) => [...prev, msg.id]);
+            setTimeout(() => removeToast(msg.id), 300);
+          }}
+        >
+          <span style={{ fontWeight: "bold", fontSize: "1.25rem" }}>⚠️</span>
+          {msg.text}
+        </div>
+      ))}
     </div>
   );
 };
