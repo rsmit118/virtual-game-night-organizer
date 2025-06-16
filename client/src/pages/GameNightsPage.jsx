@@ -22,12 +22,18 @@ function GameNightsPage() {
           </div>
         </nav>
 
-        <h1 className="profile-title">Game Nights</h1>
+        <h2 className="profile-title">Create Game Night</h2>
         <p className="profile-description">
-          Create and manage your upcoming game nights.
+          Fill in the form below to plan your next event.
         </p>
-
         <CreateGameNightForm />
+      </div>
+
+      <div className="game-nights-content-box">
+        <h2 className="profile-title">Game Nights Report</h2>
+        <p className="profile-description">
+          View and manage your scheduled game nights.
+        </p>
         <GameNightsList />
       </div>
     </div>
