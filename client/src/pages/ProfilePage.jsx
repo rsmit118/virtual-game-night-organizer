@@ -102,6 +102,10 @@ const ProfilePage = () => {
 
     if (showPasswordForm) {
       document.addEventListener("keydown", handleKeyDown);
+    } else {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
     }
 
     return () => {
@@ -244,9 +248,11 @@ const ProfilePage = () => {
                   <button onClick={() => setShowPasswordForm(true)}>
                     Change Password
                   </button>
-                  <button onClick={handleLogout}>Log Out</button>
+                  <button className="logout-button" onClick={handleLogout}>
+                    Log Out
+                  </button>
                 </div>
-              </div>{" "}
+              </div>
             </>
           </div>
         </div>
@@ -427,7 +433,12 @@ const ProfilePage = () => {
                   <button
                     type="button"
                     className="profile-modal-back-button button-base"
-                    onClick={() => setShowPasswordForm(false)}
+                    onClick={() => {
+                      setShowPasswordForm(false);
+                      setCurrentPassword("");
+                      setNewPassword("");
+                      setConfirmPassword("");
+                    }}
                   >
                     Cancel
                   </button>

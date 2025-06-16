@@ -18,6 +18,7 @@ function HomePage() {
   const [toastMessages, setToastMessages] = useState([]);
   const [exitingToastIndexes, setExitingToastIndexes] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState(null);
 
   const resetRegisterForm = () => {
     setRegisterName("");
@@ -65,6 +66,32 @@ function HomePage() {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [showRegisterModal]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+        } else {
+          localStorage.removeItem("token");
+        }
+      } catch (err) {
+        console.error("Error fetching user:", err);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     if (!showRegisterModal) {
@@ -201,7 +228,7 @@ function HomePage() {
             </div>
           </nav>
           <h1 className="home-title">
-            Welcome to Virtual Game Night Organizer!
+            Welcome to Virtual Game Night Organizer
           </h1>
           <p className="home-description">
             Plan, organize, and manage your game nights with ease. Create
@@ -210,41 +237,70 @@ function HomePage() {
             in.
           </p>
 
-          <div className="auth-box">
-            <div className="auth-sub-box">
-              <h2>Log in</h2>
-              <form className="login-form" onSubmit={handleLogin}>
-                <input
-                  type="text"
-                  placeholder="Username"
-                  value={loginUsername}
-                  onChange={(e) => setLoginUsername(e.target.value)}
-                  required
-                />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  required
-                />
-                <button type="submit" className="home-button button-base">
-                  Login
+          {user ? (
+            <div className="auth-box logged-in-box">
+              <div className="auth-sub-box logged-in-sub-box">
+                <h2>Welcome back, {user.username}!</h2>
+                <p>You’re logged in and ready to go.</p>
+                <div className="full-width-buttons">
+                  <NavLink
+                    to="/game-nights"
+                    className="home-button button-base"
+                  >
+                    Go to Game Nights
+                  </NavLink>
+                  <NavLink to="/profile" className="home-button button-base">
+                    Profile
+                  </NavLink>
+                  <button
+                    className="home-button button-base logout-button"
+                    onClick={() => {
+                      localStorage.removeItem("token");
+                      window.location.reload();
+                    }}
+                  >
+                    Log Out
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="auth-box">
+              <div className="auth-sub-box">
+                <h2>Log in</h2>
+                <form className="login-form" onSubmit={handleLogin}>
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={loginUsername}
+                    onChange={(e) => setLoginUsername(e.target.value)}
+                    required
+                  />
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    required
+                  />
+                  <button type="submit" className="home-button button-base">
+                    Login
+                  </button>
+                </form>
+              </div>
+              <p className="or">or</p>
+              <div className="auth-sub-box">
+                <h2>Make an Account</h2>
+                <button
+                  type="button"
+                  className="home-button button-base"
+                  onClick={() => setShowRegisterModal(true)}
+                >
+                  Register
                 </button>
-              </form>
+              </div>
             </div>
-            <p className="or">or</p>
-            <div className="auth-sub-box">
-              <h2>Make an Account</h2>
-              <button
-                type="button"
-                className="home-button button-base"
-                onClick={() => setShowRegisterModal(true)}
-              >
-                Register
-              </button>
-            </div>
-          </div>
+          )}
         </div>
         {toastMessages.map((msg) => (
           <div

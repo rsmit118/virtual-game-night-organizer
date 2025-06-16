@@ -357,3 +357,13 @@
 .toast-exit {
   animation: toastFadeOut 0.3s ease-out forwards;
 }
+
+.profile-buttons .logout-button {
+  background-color: #eb3636 !important;
+  color: white;
+}
+
+.profile-buttons .logout-button:hover {
+  background-color: #ef5350 !important;
+  color: white;
+}

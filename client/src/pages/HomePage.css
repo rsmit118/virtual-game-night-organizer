@@ -185,8 +185,8 @@
 }
 
 .auth-sub-box h2 {
-  margin-top: 6px;
-  margin-bottom: 6px;
+  margin-top: 4px;
+  margin-bottom: 8gpx;
 }
 
 .auth-sub-box h3 {
@@ -387,4 +387,39 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.full-width-buttons {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.full-width-buttons a,
+.full-width-buttons button {
+  width: 100%;
+  box-sizing: border-box;
+}
+.logged-in-sub-box h2 {
+  margin-bottom: 12px;
+}
+
+.logged-in-sub-box p {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.logged-in-sub-box .full-width-buttons {
+  margin-top: 16px;
+}
+
+.logout-button {
+  background-color: #eb3636;
+}
+
+.logout-button:hover {
+  background-color: #ef5350;
 }
