@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { jwtDecode } from "jwt-decode";
 import React, { useContext, useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import "./HomePage.css";
 
@@ -20,10 +21,10 @@ function HomePage() {
   const [toastMessages, setToastMessages] = useState([]);
   const [exitingToastIndexes, setExitingToastIndexes] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [user, setUser] = useState(null);
+  const { username, setAuth } = useContext(AuthContext);
+  const navigate = useNavigate();
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/;
-  const { setAuth } = useContext(AuthContext);
 
   const resetRegisterForm = () => {
     setRegisterName("");
@@ -84,10 +85,7 @@ function HomePage() {
           },
         });
 
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data);
-        } else {
+        if (!res.ok) {
           localStorage.removeItem("token");
         }
       } catch (err) {
@@ -127,8 +125,12 @@ function HomePage() {
         console.log("Received token:", data.token);
         console.log("Login response JSON:", data);
         localStorage.setItem("token", data.token);
+        const decoded = jwtDecode(data.token);
+        setAuth({ username: decoded.username, userId: decoded.userId });
+        navigate("/game-nights");
+
         console.log("Login successful:", data);
-        window.location.href = "/game-nights";
+        navigate("/game-nights");
       } else {
         console.error("Login failed");
         showToast(
@@ -191,9 +193,10 @@ function HomePage() {
 
         if (data.token) {
           localStorage.setItem("token", data.token);
+          const decoded = jwtDecode(data.token);
+          setAuth({ username: decoded.username, userId: decoded.userId });
+          navigate("/game-nights");
         }
-
-        window.location.href = "/game-nights";
       } else {
         const errorData = await response.json();
         console.error("Registration failed:", errorData);
@@ -250,10 +253,10 @@ function HomePage() {
             in.
           </p>
 
-          {user ? (
+          {username ? (
             <div className="auth-box logged-in-box">
               <div className="auth-sub-box logged-in-sub-box">
-                <h2>Welcome back, {user.username}!</h2>
+                <h2>Welcome back, {username}!</h2>
                 <p>
                   You’re logged in and ready to see or create gaming events.
                 </p>

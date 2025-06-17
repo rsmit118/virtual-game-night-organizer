@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 function LoginForm({ onLoginSuccess }) {
   const [formData, setFormData] = useState({
-    email: "",
+    username: "",
     password: "",
   });
 
@@ -23,7 +23,8 @@ function LoginForm({ onLoginSuccess }) {
 
       const data = await response.json();
       if (response.ok) {
-        setMessage(`Login successful! Welcome, ${data.username}`);
+        localStorage.setItem("token", data.token);
+        setMessage(`Login successful! Welcome!`);
         if (onLoginSuccess) {
           onLoginSuccess();
         }
@@ -41,10 +42,10 @@ function LoginForm({ onLoginSuccess }) {
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
         <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
+          type="text"
+          name="username"
+          placeholder="Username"
+          value={formData.username}
           onChange={handleChange}
         />
         <input

@@ -168,7 +168,8 @@
 }
 
 .game-message {
-  margin-top: 10px;
+  margin-top: 14px;
+  margin-bottom: 0;
   font-size: 1rem;
   color: #f0f0f0;
 }

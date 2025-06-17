@@ -1,13 +1,21 @@
-import React, { useContext } from "react";
-import { NavLink } from "react-router-dom";
+import React, { useContext, useEffect } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import CreateGameNightForm from "../components/CreateGameNightForm";
 import GameNightsList from "../components/GameNightsList";
 import { AuthContext } from "../context/AuthContext";
+
 import "./GameNightsPage.css";
 
 function GameNightsPage() {
-  const auth = useContext(AuthContext) || {};
-  const { username } = auth;
+  const { username } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!username) {
+      navigate("/");
+    }
+  }, [username, navigate]);
+
   return (
     <div className="game-nights-container">
       <div className="game-nights-content-box">
