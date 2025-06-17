@@ -122,8 +122,6 @@ function GameNightsList() {
 
   return (
     <div className="game-list-box">
-      <h2 className="game-section-title">Game Nights Report</h2>
-
       <div className="game-search-bar">
         <input
           type="text"

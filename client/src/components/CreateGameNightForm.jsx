@@ -11,6 +11,8 @@ function CreateGameNightForm({ onGameNightCreated }) {
     organizer_id: "",
   });
 
+  const [formError, setFormError] = useState("");
+
   useEffect(() => {
     const userId = getUserIdFromToken();
     if (!userId) return;
@@ -46,17 +48,29 @@ function CreateGameNightForm({ onGameNightCreated }) {
 
   const handleDateChange = (date) => {
     if (!date) return;
+
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+
     const newDate = new Date(date);
-    newDate.setHours(21);
-    newDate.setMinutes(0);
-    newDate.setSeconds(0);
-    newDate.setMilliseconds(0);
+    if (hours === 0 && minutes === 0) {
+      newDate.setHours(21, 0, 0, 0);
+    }
 
     setFormData({ ...formData, event_date: newDate });
+    setFormError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.event_date) {
+      setFormError("Please select a date and time.");
+      return;
+    } else {
+      setFormError("");
+    }
+
     const token = localStorage.getItem("token");
     try {
       const response = await fetch("http://localhost:5000/api/game_nights", {
@@ -79,9 +93,11 @@ function CreateGameNightForm({ onGameNightCreated }) {
         setFormData({
           title: "",
           description: "",
-          event_date: new Date(),
+          event_date: null,
           organizer_id: formData.organizer_id,
         });
+        setFormError("");
+
         if (onGameNightCreated) {
           onGameNightCreated();
         }
@@ -121,12 +137,14 @@ function CreateGameNightForm({ onGameNightCreated }) {
           required
         />
         <DatePicker
-          selected={formData.event_date}
+          selected={formData.event_date || getTodayAt9PM()}
+          value={formData.event_date ? undefined : ""}
           onChange={handleDateChange}
           showTimeSelect
           timeIntervals={15}
           dateFormat="eeee, MMMM d, yyyy '@' h:mm aa"
-          placeholderText="Select date and time"
+          placeholderText={formError || "Select date and time"}
+          className={formError ? "error" : ""}
           minDate={new Date()}
           portalId="datepicker-portal"
           popperContainer={({ children }) => <div>{children}</div>}
@@ -135,10 +153,14 @@ function CreateGameNightForm({ onGameNightCreated }) {
           showMonthDropdown
           showYearDropdown
           dropdownMode="select"
-          openToDate={getTodayAt9PM()}
-          customInput={<input className="custom-datepicker-input" readOnly />}
+          customInput={
+            <input
+              readOnly
+              className={`custom-datepicker-input ${formError ? "error" : ""}`}
+              placeholder={formError || "Select date and time"}
+            />
+          }
         />
-
         <button type="submit" className="button-base">
           Create
         </button>

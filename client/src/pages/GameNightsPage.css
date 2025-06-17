@@ -404,3 +404,12 @@
 .custom-datepicker-input {
   cursor: pointer !important;
 }
+
+.react-datepicker__input-container input.error {
+  border: 1px solid red;
+  color: red;
+}
+
+.custom-datepicker-input.error::placeholder {
+  color: rgb(255, 75, 75);
+}
