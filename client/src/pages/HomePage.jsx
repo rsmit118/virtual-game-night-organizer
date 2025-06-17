@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 import "./HomePage.css";
 
 function HomePage() {
@@ -22,6 +23,7 @@ function HomePage() {
   const [user, setUser] = useState(null);
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/;
+  const { setAuth } = useContext(AuthContext);
 
   const resetRegisterForm = () => {
     setRegisterName("");
@@ -269,7 +271,8 @@ function HomePage() {
                     className="home-button button-base logout-button"
                     onClick={() => {
                       localStorage.removeItem("token");
-                      window.location.reload();
+                      setAuth({ username: null, userId: null });
+                      window.location.href = "/";
                     }}
                   >
                     Log Out

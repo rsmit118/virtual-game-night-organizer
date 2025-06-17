@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useContext } from "react";
 import { NavLink } from "react-router-dom";
 import CreateGameNightForm from "../components/CreateGameNightForm";
 import GameNightsList from "../components/GameNightsList";
+import { AuthContext } from "../context/AuthContext";
 import "./GameNightsPage.css";
 
 function GameNightsPage() {
+  const auth = useContext(AuthContext) || {};
+  const { username } = auth;
   return (
     <div className="game-nights-container">
       <div className="game-nights-content-box">
@@ -23,6 +26,9 @@ function GameNightsPage() {
         </nav>
 
         <h2 className="profile-title">Create Game Night</h2>
+        <div className="user-badge">
+          <span className="username-highlight">{username}</span>
+        </div>
         <p className="profile-description">
           Fill in the form below to plan your next event.
         </p>

@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 import "./ProfilePage.css";
 
 const ProfilePage = () => {
@@ -21,6 +22,7 @@ const ProfilePage = () => {
   const [isPasswordValid, setIsPasswordValid] = useState(true);
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/;
+  const { setAuth } = useContext(AuthContext);
 
   const removeToast = (id) => {
     setToastMessages((prev) => prev.filter((msg) => msg.id !== id));
@@ -93,6 +95,7 @@ const ProfilePage = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    setAuth({ username: null, userId: null });
     navigate("/");
   };
 

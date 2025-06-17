@@ -413,3 +413,16 @@
 .custom-datepicker-input.error::placeholder {
   color: rgb(255, 75, 75);
 }
+
+.user-badge {
+  position: absolute;
+  top: 10rem;
+  right: 16.7rem;
+  font-size: 0.9rem;
+  background-color: #3f9ddb;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  color: #ffffff;
+  z-index: 1;
+}
