@@ -1,11 +1,13 @@
 import { jwtDecode } from "jwt-decode";
 import React, { useEffect, useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 function CreateGameNightForm({ onGameNightCreated }) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    event_date: "",
+    event_date: null,
     organizer_id: "",
   });
 
@@ -42,18 +44,33 @@ function CreateGameNightForm({ onGameNightCreated }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleDateChange = (date) => {
+    if (!date) return;
+    const newDate = new Date(date);
+    newDate.setHours(21);
+    newDate.setMinutes(0);
+    newDate.setSeconds(0);
+    newDate.setMilliseconds(0);
+
+    setFormData({ ...formData, event_date: newDate });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
     try {
-      console.log("Token being sent:", token);
       const response = await fetch("http://localhost:5000/api/game_nights", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          event_date: formData.event_date
+            ? formData.event_date.toISOString()
+            : null,
+        }),
       });
 
       const data = await response.json();
@@ -62,8 +79,8 @@ function CreateGameNightForm({ onGameNightCreated }) {
         setFormData({
           title: "",
           description: "",
-          event_date: "",
-          organizer_id: 1,
+          event_date: new Date(),
+          organizer_id: formData.organizer_id,
         });
         if (onGameNightCreated) {
           onGameNightCreated();
@@ -76,6 +93,12 @@ function CreateGameNightForm({ onGameNightCreated }) {
       setMessage("An error occurred");
     }
   };
+
+  function getTodayAt9PM() {
+    const now = new Date();
+    now.setHours(21, 0, 0, 0);
+    return now;
+  }
 
   return (
     <div className="game-form-box">
@@ -97,13 +120,25 @@ function CreateGameNightForm({ onGameNightCreated }) {
           onChange={handleChange}
           required
         />
-        <input
-          type="datetime-local"
-          name="event_date"
-          value={formData.event_date}
-          onChange={handleChange}
-          required
+        <DatePicker
+          selected={formData.event_date}
+          onChange={handleDateChange}
+          showTimeSelect
+          timeIntervals={15}
+          dateFormat="eeee, MMMM d, yyyy '@' h:mm aa"
+          placeholderText="Select date and time"
+          minDate={new Date()}
+          portalId="datepicker-portal"
+          popperContainer={({ children }) => <div>{children}</div>}
+          popperClassName="custom-datepicker-popup"
+          formatWeekDay={(nameOfDay) => nameOfDay.substr(0, 3)}
+          showMonthDropdown
+          showYearDropdown
+          dropdownMode="select"
+          openToDate={getTodayAt9PM()}
+          customInput={<input className="custom-datepicker-input" readOnly />}
         />
+
         <button type="submit" className="button-base">
           Create
         </button>
