@@ -427,3 +427,9 @@
   color: #ffffff;
   z-index: 1;
 }
+
+table {
+  table-layout: fixed;
+  width: 100%;
+  word-wrap: break-word;
+}

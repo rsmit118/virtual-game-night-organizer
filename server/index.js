@@ -9,7 +9,13 @@ const pool = require("./db");
 const authRoutes = require("./routes/auth");
 const gameNightRoutes = require("./routes/game_nights");
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/game_nights", gameNightRoutes);
@@ -20,8 +26,8 @@ app.get("/", async (req, res) => {
     const result = await pool.query("SELECT NOW()");
     res.send(`Backend is running! DB time: ${result.rows[0].now}`);
   } catch (err) {
-    console.error("Database error:", err); // force label the error
-    res.status(500).send(`Database error: ${err.message}`); // show error message on page too
+    console.error("Database error:", err);
+    res.status(500).send(`Database error: ${err.message}`);
   }
 });
 

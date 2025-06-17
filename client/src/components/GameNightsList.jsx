@@ -29,9 +29,10 @@ function GameNightsList() {
         "http://localhost:5000/api/game_nights/report"
       );
       const data = await response.json();
-      setGameNights(data.data || []);
-    } catch (err) {
-      console.error(err);
+
+      setGameNights(data.data);
+    } catch (error) {
+      console.error("Failed to fetch game nights:", error);
     }
   };
 
@@ -116,9 +117,74 @@ function GameNightsList() {
     }
   };
 
+  const handleRSVP = async (gameNightId, isJoining) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/game_nights/${gameNightId}/rsvp`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          credentials: "include",
+          body: JSON.stringify({ join: isJoining }),
+        }
+      );
+
+      if (response.ok) {
+        const updatedGameNights = gameNights.map((gn) => {
+          if (gn.game_night_id === gameNightId) {
+            const alreadyJoined = gn.attendees.some(
+              (a) => a.user_id === currentUserId
+            );
+            let updatedAttendees;
+            if (isJoining && !alreadyJoined) {
+              updatedAttendees = [
+                ...gn.attendees,
+                { user_id: currentUserId, username: "You" },
+              ];
+            } else if (!isJoining && alreadyJoined) {
+              updatedAttendees = gn.attendees.filter(
+                (a) => a.user_id !== currentUserId
+              );
+            } else {
+              updatedAttendees = gn.attendees;
+            }
+            return { ...gn, attendees: updatedAttendees };
+          }
+          return gn;
+        });
+
+        setGameNights(updatedGameNights);
+      } else {
+        console.error("Failed to RSVP");
+      }
+    } catch (err) {
+      console.error("Error submitting RSVP:", err);
+    }
+  };
+
+  const handleVote = async (gameId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/game_nights/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gameId }),
+      });
+
+      if (!res.ok) throw new Error("Vote failed");
+
+      fetchGameNights();
+    } catch (err) {
+      console.error("Voting error:", err.message);
+    }
+  };
+
   useEffect(() => {
     fetchGameNights();
   }, []);
+  console.log("Game nights:", gameNights);
 
   return (
     <div className="game-list-box">
@@ -167,37 +233,65 @@ function GameNightsList() {
           <thead>
             <tr>
               <th>Title</th>
-              <th>Event Date</th>
-              <th>Organizer ID</th>
-              <th>Created At</th>
-              <th>Actions</th>
+              <th>Description</th>
+              <th>Date</th>
+              <th>Organizer</th>
+              <th>RSVP</th>
+              <th>Vote</th>
             </tr>
           </thead>
+
           <tbody>
             {gameNights.map((gn) => (
-              <tr key={gn.game_night_id || gn.title + gn.event_date}>
+              <tr key={gn.game_night_id}>
                 <td>{gn.title}</td>
+                <td>{gn.description}</td>
                 <td>{new Date(gn.event_date).toLocaleString()}</td>
-                <td>{gn.organizer_id}</td>
-                <td>{new Date(gn.created_at).toLocaleString()}</td>
+                <td>{gn.organizer_username}</td>
+                {gn.organizer_id === currentUserId ? (
+                  <td>
+                    <button onClick={() => handleEdit(gn)}>Edit</button>
+                    <button onClick={() => handleDelete(gn.game_night_id)}>
+                      Delete
+                    </button>
+                  </td>
+                ) : (
+                  <td></td>
+                )}
                 <td>
-                  {gn.organizer_id === currentUserId ? (
-                    <>
-                      <button
-                        onClick={() => handleEdit(gn)}
-                        className="button-base small-btn"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(gn.game_night_id)}
-                        className="button-base small-btn delete-btn"
-                      >
-                        Delete
-                      </button>
-                    </>
+                  <div>
+                    <strong>{gn.attendees.length}</strong> attending
+                  </div>
+                  {gn.attendees.some((a) => a.user_id === currentUserId) ? (
+                    <button onClick={() => handleRSVP(gn.game_night_id, false)}>
+                      Cancel RSVP
+                    </button>
                   ) : (
-                    <em style={{ color: "#aaa" }}>Not yours</em>
+                    <button onClick={() => handleRSVP(gn.game_night_id, true)}>
+                      RSVP
+                    </button>
+                  )}
+                </td>{" "}
+                <td style={{ maxWidth: "220px", overflowWrap: "break-word" }}>
+                  {gn.games && gn.games.length > 0 ? (
+                    <ul style={{ paddingLeft: "1em", margin: 0 }}>
+                      {gn.games.map((game) => (
+                        <li key={game.id} style={{ marginBottom: "4px" }}>
+                          <div style={{ fontSize: "0.85rem" }}>
+                            {game.title} ({game.votes} votes)
+                            <div>
+                              <button onClick={() => handleVote(game.id)}>
+                                👍 Vote
+                              </button>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p style={{ margin: 0, color: "#888" }}>
+                      No games suggested.
+                    </p>
                   )}
                 </td>
               </tr>

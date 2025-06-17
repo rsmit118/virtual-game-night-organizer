@@ -133,25 +133,134 @@ router.get("/search", async (req, res) => {
 
 router.get("/report", async (req, res) => {
   try {
-    const result = await pool.query(
-      `SELECT 
-    game_night_id,
-    title, 
-    event_date, 
-    organizer_id, 
-    created_at 
-   FROM game_nights 
-   ORDER BY event_date DESC`
+    const gameNightsRes = await pool.query(`
+      SELECT 
+        gn.game_night_id,
+        gn.title,
+        gn.description,
+        gn.event_date,
+        gn.organizer_id,
+        gn.created_at,
+        u.username AS organizer_username
+      FROM game_nights gn
+      LEFT JOIN users u ON gn.organizer_id = u.user_id
+      ORDER BY gn.event_date DESC
+    `);
+
+    const gameNightIds = gameNightsRes.rows.map((row) => row.game_night_id);
+
+    const attendeesRes = await pool.query(
+      `
+  SELECT 
+    gna.game_night_id,
+    u.user_id AS user_id,
+    u.username
+  FROM game_night_attendees gna
+  JOIN users u ON gna.user_id = u.user_id
+  WHERE gna.game_night_id = ANY($1)
+`,
+      [gameNightIds]
     );
+
+    const gamesRes = await pool.query(
+      `
+  SELECT 
+    id, 
+    game_night_id, 
+    title, 
+    votes 
+  FROM game_night_games
+  WHERE game_night_id = ANY($1)
+`,
+      [gameNightIds]
+    );
+
+    const gamesMap = {};
+    for (const game of gamesRes.rows) {
+      if (!gamesMap[game.game_night_id]) {
+        gamesMap[game.game_night_id] = [];
+      }
+      gamesMap[game.game_night_id].push({
+        id: game.id,
+        title: game.title,
+        votes: game.votes,
+      });
+    }
+
+    const attendeesMap = {};
+    for (const row of attendeesRes.rows) {
+      if (!attendeesMap[row.game_night_id]) {
+        attendeesMap[row.game_night_id] = [];
+      }
+      attendeesMap[row.game_night_id].push({
+        user_id: row.user_id,
+        username: row.username,
+      });
+    }
+
+    const data = gameNightsRes.rows.map((gn) => ({
+      ...gn,
+      attendees: attendeesMap[gn.game_night_id] || [],
+      games: gamesMap[gn.game_night_id] || [],
+    }));
 
     res.json({
       report_title: "Game Nights Report",
       generated_at: new Date(),
-      data: result.rows,
+      data,
     });
   } catch (err) {
     console.error(err);
     res.status(500).send("Server error");
+  }
+});
+
+router.post("/:id/rsvp", authorize, async (req, res) => {
+  const gameNightId = parseInt(req.params.id);
+  const userId = req.user.userId;
+
+  try {
+    const check = await pool.query(
+      "SELECT * FROM game_night_attendees WHERE game_night_id = $1 AND user_id = $2",
+      [gameNightId, userId]
+    );
+
+    if (check.rows.length > 0) {
+      await pool.query(
+        "DELETE FROM game_night_attendees WHERE game_night_id = $1 AND user_id = $2",
+        [gameNightId, userId]
+      );
+      return res.json({ message: "RSVP removed", status: "unjoined" });
+    } else {
+      await pool.query(
+        "INSERT INTO game_night_attendees (game_night_id, user_id) VALUES ($1, $2)",
+        [gameNightId, userId]
+      );
+      return res.json({ message: "RSVP added", status: "joined" });
+    }
+  } catch (err) {
+    console.error("RSVP error:", err);
+    res.status(500).json({ message: "Server error during RSVP" });
+  }
+});
+
+router.post("/vote", async (req, res) => {
+  const { gameId } = req.body;
+
+  if (!gameId) {
+    return res.status(400).json({ message: "Missing gameId" });
+  }
+
+  try {
+    await pool.query(
+      `UPDATE game_night_games SET votes = votes + 1 WHERE id = $1`,
+      [gameId]
+    );
+
+    res.json({ message: "Vote recorded" });
+  } catch (err) {
+    console.error("Vote error:", err);
+    res.status(500).json({ message: "Failed to record vote" });
   }
 });
 
