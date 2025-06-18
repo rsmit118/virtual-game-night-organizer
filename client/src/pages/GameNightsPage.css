@@ -433,3 +433,63 @@ table {
   width: 100%;
   word-wrap: break-word;
 }
+
+.game-event-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-top: -15px;
+  flex-wrap: wrap;
+}
+
+.game-select-group {
+  flex: 1;
+  min-width: 220px;
+}
+
+.event-type-group {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.form-select {
+  padding: 11px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+  width: 100%;
+  color: #fff;
+  box-sizing: border-box;
+  background-color: #3b3b3b;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6z' fill='gray'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 10px 6px;
+
+  background-position: right 12px center;
+  border: 2px solid transparent;
+  box-shadow: none;
+}
+
+.form-select.placeholder {
+  color: #757575;
+}
+
+.form-select:focus {
+  outline: none;
+  border: 2px solid #fff;
+}
+
+.event-type-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: white;
+}

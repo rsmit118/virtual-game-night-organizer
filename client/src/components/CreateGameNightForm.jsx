@@ -9,7 +9,7 @@ function CreateGameNightForm({ onGameNightCreated }) {
     event_date: null,
     organizer_id: "",
     location_type: "in-person",
-    selected_game: "Diablo 4",
+    selected_game: "",
   });
 
   const [formError, setFormError] = useState("");
@@ -155,9 +155,36 @@ function CreateGameNightForm({ onGameNightCreated }) {
             />
           }
         />
-        <div className="location-type-group">
-          <label>Event Type:</label>
-          <div>
+
+        <div className="game-event-row">
+          <div className="game-select-group">
+            <select
+              id="selected_game"
+              name="selected_game"
+              value={formData.selected_game}
+              onChange={handleChange}
+              required
+              className={`form-select${
+                formData.selected_game === "" ? " placeholder" : ""
+              }`}
+            >
+              <option value="" disabled hidden>
+                Choose a game
+              </option>
+              <option value="Diablo 4">Diablo 4</option>
+              <option value="Fortnite">Fortnite</option>
+              <option value="League of Legends">League of Legends</option>
+              <option value="Mario Kart World">Mario Kart World</option>
+              <option value="Overwatch">Overwatch</option>
+              <option value="Super Mario Party Jamboree">
+                Super Mario Party Jamboree
+              </option>
+              <option value="World of Warcraft">World of Warcraft</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div className="event-type-group">
             <label>
               <input
                 type="radio"
@@ -179,29 +206,6 @@ function CreateGameNightForm({ onGameNightCreated }) {
               Online
             </label>
           </div>
-        </div>
-        <div className="form-group">
-          <label htmlFor="selected_game">Choose a Game:</label>
-          <select
-            name="selected_game"
-            value={formData.selected_game || ""}
-            onChange={handleChange}
-            required
-          >
-            <option value="" disabled>
-              Select a game
-            </option>
-            <option value="Diablo 4">Diablo 4</option>
-            <option value="Fortnite">Fortnite</option>
-            <option value="League of Legends">League of Legends</option>
-            <option value="Mario Kart World">Mario Kart World</option>
-            <option value="Overwatch">Overwatch</option>
-            <option value="Super Mario Party Jamboree">
-              Super Mario Party Jamboree
-            </option>
-            <option value="World of Warcraft">World of Warcraft</option>
-            <option value="Other">Other</option>
-          </select>
         </div>
         <button type="submit" className="button-base">
           Create
