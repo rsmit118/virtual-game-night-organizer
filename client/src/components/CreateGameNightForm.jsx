@@ -6,9 +6,10 @@ import "react-datepicker/dist/react-datepicker.css";
 function CreateGameNightForm({ onGameNightCreated }) {
   const [formData, setFormData] = useState({
     title: "",
-    description: "",
     event_date: null,
     organizer_id: "",
+    location_type: "in-person",
+    selected_game: "Diablo 4",
   });
 
   const [formError, setFormError] = useState("");
@@ -73,7 +74,7 @@ function CreateGameNightForm({ onGameNightCreated }) {
 
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch("http://localhost:5000/api/game_nights", {
+      const response = await fetch("/api/game_nights", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,6 +85,8 @@ function CreateGameNightForm({ onGameNightCreated }) {
           event_date: formData.event_date
             ? formData.event_date.toISOString()
             : null,
+          location_type: formData.location_type || "online",
+          selected_game: formData.selected_game || null,
         }),
       });
 
@@ -92,7 +95,6 @@ function CreateGameNightForm({ onGameNightCreated }) {
         setMessage("Game night created successfully!");
         setFormData({
           title: "",
-          description: "",
           event_date: null,
           organizer_id: formData.organizer_id,
         });
@@ -128,14 +130,6 @@ function CreateGameNightForm({ onGameNightCreated }) {
           onChange={handleChange}
           required
         />
-        <input
-          type="text"
-          name="description"
-          placeholder="Description"
-          value={formData.description}
-          onChange={handleChange}
-          required
-        />
         <DatePicker
           selected={formData.event_date || getTodayAt9PM()}
           value={formData.event_date ? undefined : ""}
@@ -161,6 +155,54 @@ function CreateGameNightForm({ onGameNightCreated }) {
             />
           }
         />
+        <div className="location-type-group">
+          <label>Event Type:</label>
+          <div>
+            <label>
+              <input
+                type="radio"
+                name="location_type"
+                value="in-person"
+                checked={formData.location_type === "in-person"}
+                onChange={handleChange}
+              />
+              In-Person
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="location_type"
+                value="online"
+                checked={formData.location_type === "online"}
+                onChange={handleChange}
+              />
+              Online
+            </label>
+          </div>
+        </div>
+        <div className="form-group">
+          <label htmlFor="selected_game">Choose a Game:</label>
+          <select
+            name="selected_game"
+            value={formData.selected_game || ""}
+            onChange={handleChange}
+            required
+          >
+            <option value="" disabled>
+              Select a game
+            </option>
+            <option value="Diablo 4">Diablo 4</option>
+            <option value="Fortnite">Fortnite</option>
+            <option value="League of Legends">League of Legends</option>
+            <option value="Mario Kart World">Mario Kart World</option>
+            <option value="Overwatch">Overwatch</option>
+            <option value="Super Mario Party Jamboree">
+              Super Mario Party Jamboree
+            </option>
+            <option value="World of Warcraft">World of Warcraft</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
         <button type="submit" className="button-base">
           Create
         </button>

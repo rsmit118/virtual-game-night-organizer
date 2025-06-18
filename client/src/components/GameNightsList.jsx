@@ -233,8 +233,9 @@ function GameNightsList() {
           <thead>
             <tr>
               <th>Title</th>
-              <th>Description</th>
               <th>Date</th>
+              <th>Game</th>
+              <th>Location</th>
               <th>Organizer</th>
               <th>RSVP</th>
               <th>Vote</th>
@@ -245,8 +246,13 @@ function GameNightsList() {
             {gameNights.map((gn) => (
               <tr key={gn.game_night_id}>
                 <td>{gn.title}</td>
-                <td>{gn.description}</td>
                 <td>{new Date(gn.event_date).toLocaleString()}</td>
+                <td>
+                  {gn.games && gn.games.length > 0 ? gn.games[0].title : "—"}
+                </td>
+                <td>
+                  {gn.location_type === "online" ? "Online" : "In-Person"}
+                </td>
                 <td>{gn.organizer_username}</td>
                 {gn.organizer_id === currentUserId ? (
                   <td>

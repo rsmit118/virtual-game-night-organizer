@@ -23,14 +23,23 @@ router.post(
         return res.status(403).json({ message: "User ID mismatch" });
       }
 
-      const { title, description, event_date, organizer_id } = req.body;
+      const { title, event_date, organizer_id, selected_game } = req.body;
 
       const query = `
-  INSERT INTO game_nights (title, description, event_date, organizer_id)
-  VALUES ($1, $2, $3, $4)
+  INSERT INTO game_nights (title, event_date, organizer_id)
+  VALUES ($1, $2, $3)
+  RETURNING game_night_id
 `;
 
-      await db.query(query, [title, description, event_date, organizer_id]);
+      const result = await db.query(query, [title, event_date, organizer_id]);
+      const gameNightId = result.rows[0].game_night_id;
+
+      if (selected_game) {
+        await db.query(
+          `INSERT INTO game_night_games (game_night_id, title) VALUES ($1, $2)`,
+          [gameNightId, selected_game]
+        );
+      }
 
       res.status(201).json({ message: "Game night created" });
     } catch (err) {
