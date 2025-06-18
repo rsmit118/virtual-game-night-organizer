@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import CreateGameNightForm from "../components/CreateGameNightForm";
 import GameNightsList from "../components/GameNightsList";
@@ -10,11 +10,17 @@ function GameNightsPage() {
   const { username } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  const [reloadList, setReloadList] = useState(false);
+
   useEffect(() => {
     if (!username) {
       navigate("/");
     }
   }, [username, navigate]);
+
+  const handleGameNightCreated = () => {
+    setReloadList((prev) => !prev);
+  };
 
   return (
     <div className="game-nights-container">
@@ -40,7 +46,7 @@ function GameNightsPage() {
         <p className="profile-description">
           Fill in the form below to plan your next event.
         </p>
-        <CreateGameNightForm />
+        <CreateGameNightForm onGameNightCreated={handleGameNightCreated} />
       </div>
 
       <div className="game-nights-content-box">
@@ -48,7 +54,7 @@ function GameNightsPage() {
         <p className="profile-description">
           View and manage your scheduled game nights.
         </p>
-        <GameNightsList />
+        <GameNightsList reload={reloadList} />
       </div>
     </div>
   );

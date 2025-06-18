@@ -34,6 +34,11 @@ router.post(
       const result = await db.query(query, [title, event_date, organizer_id]);
       const gameNightId = result.rows[0].game_night_id;
 
+      await db.query(
+        `INSERT INTO game_night_attendees (game_night_id, user_id) VALUES ($1, $2)`,
+        [gameNightId, organizer_id]
+      );
+
       if (selected_game) {
         await db.query(
           `INSERT INTO game_night_games (game_night_id, title) VALUES ($1, $2)`,
@@ -63,7 +68,7 @@ router.get("/", async (req, res) => {
 
 router.put("/:id", authorize, async (req, res) => {
   const { id } = req.params;
-  const { title, description } = req.body;
+  const { title } = req.body;
 
   try {
     const result = await pool.query(
@@ -84,8 +89,8 @@ router.put("/:id", authorize, async (req, res) => {
     }
 
     await pool.query(
-      "UPDATE game_nights SET title = $1, description = $2 WHERE game_night_id = $3",
-      [title, description, id]
+      "UPDATE game_nights SET title = $1 WHERE game_night_id = $2",
+      [title, id]
     );
 
     res.status(200).json({ message: "Event updated successfully." });
@@ -146,7 +151,6 @@ router.get("/report", async (req, res) => {
       SELECT 
         gn.game_night_id,
         gn.title,
-        gn.description,
         gn.event_date,
         gn.organizer_id,
         gn.created_at,
@@ -176,11 +180,10 @@ router.get("/report", async (req, res) => {
   SELECT 
     id, 
     game_night_id, 
-    title, 
-    votes 
+    title
   FROM game_night_games
   WHERE game_night_id = ANY($1)
-`,
+  `,
       [gameNightIds]
     );
 
@@ -192,7 +195,6 @@ router.get("/report", async (req, res) => {
       gamesMap[game.game_night_id].push({
         id: game.id,
         title: game.title,
-        votes: game.votes,
       });
     }
 
@@ -250,26 +252,6 @@ router.post("/:id/rsvp", authorize, async (req, res) => {
   } catch (err) {
     console.error("RSVP error:", err);
     res.status(500).json({ message: "Server error during RSVP" });
-  }
-});
-
-router.post("/vote", async (req, res) => {
-  const { gameId } = req.body;
-
-  if (!gameId) {
-    return res.status(400).json({ message: "Missing gameId" });
-  }
-
-  try {
-    await pool.query(
-      `UPDATE game_night_games SET votes = votes + 1 WHERE id = $1`,
-      [gameId]
-    );
-
-    res.json({ message: "Vote recorded" });
-  } catch (err) {
-    console.error("Vote error:", err);
-    res.status(500).json({ message: "Failed to record vote" });
   }
 });
 

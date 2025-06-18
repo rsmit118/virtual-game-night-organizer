@@ -1,7 +1,8 @@
+import Tooltip from "@mui/material/Tooltip";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 
-function GameNightsList() {
+function GameNightsList({ reload }) {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [gameNights, setGameNights] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -117,18 +118,16 @@ function GameNightsList() {
     }
   };
 
-  const handleRSVP = async (gameNightId, isJoining) => {
+  const handleRSVP = async (gameNightId) => {
     try {
       const response = await fetch(
         `http://localhost:5000/api/game_nights/${gameNightId}/rsvp`,
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           credentials: "include",
-          body: JSON.stringify({ join: isJoining }),
         }
       );
 
@@ -139,18 +138,18 @@ function GameNightsList() {
               (a) => a.user_id === currentUserId
             );
             let updatedAttendees;
-            if (isJoining && !alreadyJoined) {
+
+            if (!alreadyJoined) {
               updatedAttendees = [
                 ...gn.attendees,
                 { user_id: currentUserId, username: "You" },
               ];
-            } else if (!isJoining && alreadyJoined) {
+            } else {
               updatedAttendees = gn.attendees.filter(
                 (a) => a.user_id !== currentUserId
               );
-            } else {
-              updatedAttendees = gn.attendees;
             }
+
             return { ...gn, attendees: updatedAttendees };
           }
           return gn;
@@ -165,25 +164,10 @@ function GameNightsList() {
     }
   };
 
-  const handleVote = async (gameId) => {
-    try {
-      const res = await fetch(`http://localhost:5000/api/game_nights/vote`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gameId }),
-      });
-
-      if (!res.ok) throw new Error("Vote failed");
-
-      fetchGameNights();
-    } catch (err) {
-      console.error("Voting error:", err.message);
-    }
-  };
-
   useEffect(() => {
     fetchGameNights();
-  }, []);
+  }, [reload]);
+
   console.log("Game nights:", gameNights);
 
   return (
@@ -232,21 +216,53 @@ function GameNightsList() {
         <table className="game-table">
           <thead>
             <tr>
-              <th>Title</th>
-              <th>Date</th>
-              <th>Game</th>
-              <th>Location</th>
-              <th>Organizer</th>
-              <th>RSVP</th>
-              <th>Vote</th>
+              <th style={{ width: "30%" }}>Title</th>
+              <th style={{ width: "15%" }}>Date</th>
+              <th style={{ width: "15%" }}>Game</th>
+              <th style={{ width: "10%" }}>Location</th>
+              <th style={{ width: "15%" }}>Organizer</th>
+              <th style={{ width: "15%" }}>RSVP</th>
             </tr>
           </thead>
 
           <tbody>
             {gameNights.map((gn) => (
               <tr key={gn.game_night_id}>
-                <td>{gn.title}</td>
-                <td>{new Date(gn.event_date).toLocaleString()}</td>
+                <td>
+                  <div>{gn.title}</div>
+                  {gn.organizer_id === currentUserId && (
+                    <div style={{ marginTop: "4px" }}>
+                      <button
+                        onClick={() => handleEdit(gn)}
+                        style={{ marginRight: "6px" }}
+                      >
+                        Edit
+                      </button>
+                      <button onClick={() => handleDelete(gn.game_night_id)}>
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </td>
+
+                <td>
+                  {new Date(gn.event_date).toLocaleDateString("en-US", {
+                    weekday: "long",
+                  })}
+                  <br />
+                  {new Date(gn.event_date).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "2-digit",
+                    year: "numeric",
+                  })}
+                  <br />
+                  {new Date(gn.event_date).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
+                </td>
+
                 <td>
                   {gn.games && gn.games.length > 0 ? gn.games[0].title : "—"}
                 </td>
@@ -254,50 +270,62 @@ function GameNightsList() {
                   {gn.location_type === "online" ? "Online" : "In-Person"}
                 </td>
                 <td>{gn.organizer_username}</td>
-                {gn.organizer_id === currentUserId ? (
-                  <td>
-                    <button onClick={() => handleEdit(gn)}>Edit</button>
-                    <button onClick={() => handleDelete(gn.game_night_id)}>
-                      Delete
-                    </button>
-                  </td>
-                ) : (
-                  <td></td>
-                )}
                 <td>
-                  <div>
-                    <strong>{gn.attendees.length}</strong> attending
-                  </div>
+                  <Tooltip
+                    title={
+                      gn.attendees.length > 0 ? (
+                        <div>
+                          {gn.attendees
+                            .map((a) => a.username)
+                            .sort((a, b) => a.localeCompare(b))
+                            .map((name, index) => (
+                              <div key={index}>{name}</div>
+                            ))}
+                        </div>
+                      ) : (
+                        "No attendees yet"
+                      )
+                    }
+                    arrow
+                    placement="top"
+                    componentsProps={{
+                      tooltip: {
+                        sx: {
+                          fontSize: "1.2rem",
+                          fontWeight: "bold",
+                          maxWidth: 400,
+                          padding: "12px 16px",
+                          lineHeight: 1.6,
+                          backgroundColor: "#3f9ddb",
+                          color: "#fff",
+                        },
+                      },
+                      arrow: {
+                        sx: {
+                          color: "#3f9ddb",
+                        },
+                      },
+                    }}
+                  >
+                    <div
+                      style={{
+                        cursor: "help",
+                        textDecoration: "underline dotted",
+                        textUnderlineOffset: "3px",
+                      }}
+                    >
+                      <strong>{gn.attendees.length}</strong> attending
+                    </div>
+                  </Tooltip>
+
                   {gn.attendees.some((a) => a.user_id === currentUserId) ? (
-                    <button onClick={() => handleRSVP(gn.game_night_id, false)}>
+                    <button onClick={() => handleRSVP(gn.game_night_id)}>
                       Cancel RSVP
                     </button>
                   ) : (
-                    <button onClick={() => handleRSVP(gn.game_night_id, true)}>
+                    <button onClick={() => handleRSVP(gn.game_night_id)}>
                       RSVP
                     </button>
-                  )}
-                </td>{" "}
-                <td style={{ maxWidth: "220px", overflowWrap: "break-word" }}>
-                  {gn.games && gn.games.length > 0 ? (
-                    <ul style={{ paddingLeft: "1em", margin: 0 }}>
-                      {gn.games.map((game) => (
-                        <li key={game.id} style={{ marginBottom: "4px" }}>
-                          <div style={{ fontSize: "0.85rem" }}>
-                            {game.title} ({game.votes} votes)
-                            <div>
-                              <button onClick={() => handleVote(game.id)}>
-                                👍 Vote
-                              </button>
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p style={{ margin: 0, color: "#888" }}>
-                      No games suggested.
-                    </p>
                   )}
                 </td>
               </tr>
