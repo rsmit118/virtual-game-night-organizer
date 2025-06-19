@@ -42,13 +42,13 @@ function GameNightsList({ reload }) {
   const handleSearch = () => {
     const query = searchTerm.toLowerCase();
 
-    const filtered = gameNights.filter((gn) => {
+    const filtered = allGameNights.filter((gn) => {
       const title = gn.title?.toLowerCase() || "";
       const location = gn.location_type?.toLowerCase() || "";
       const game = gn.games?.[0]?.title?.toLowerCase() || "";
       const organizer = gn.organizer_username?.toLowerCase() || "";
       const attendees = gn.attendees
-        .map((a) => a.username.toLowerCase())
+        .map((a) => (a.username || "").toLowerCase())
         .join(" ");
 
       return (
@@ -185,6 +185,33 @@ function GameNightsList({ reload }) {
     fetchGameNights();
   }, [reload]);
 
+  function getTimeUntil(eventDate) {
+    const now = new Date();
+    const target = new Date(eventDate);
+    const diff = target - now;
+
+    if (diff <= 0) return { text: "Already started", isToday: false };
+
+    const isSameDay = now.toDateString() === target.toDateString();
+
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    let text = "";
+    if (days > 0) {
+      text = `Starts in ${days} day${days !== 1 ? "s" : ""}`;
+    } else if (hours > 0) {
+      text = `Starts in ${hours} hour${hours !== 1 ? "s" : ""}`;
+    } else if (minutes > 0) {
+      text = `Starts in ${minutes} minute${minutes !== 1 ? "s" : ""}`;
+    } else {
+      text = "Starts soon";
+    }
+
+    return { text, isToday: isSameDay };
+  }
+
   console.log("Game nights:", gameNights);
 
   return (
@@ -255,9 +282,28 @@ function GameNightsList({ reload }) {
 
           <tbody>
             {[...gameNights]
-              .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
+              .sort((a, b) => {
+                const now = new Date();
+                const aDate = new Date(a.event_date);
+                const bDate = new Date(b.event_date);
+
+                const aIsPast = aDate <= now;
+                const bIsPast = bDate <= now;
+
+                if (aIsPast && !bIsPast) return 1;
+                if (!aIsPast && bIsPast) return -1;
+
+                return aDate - bDate;
+              })
               .map((gn) => (
-                <tr key={gn.game_night_id}>
+                <tr
+                  key={gn.game_night_id}
+                  className={
+                    new Date(gn.event_date) <= new Date()
+                      ? "past-event-row"
+                      : ""
+                  }
+                >
                   <td>
                     <div>{gn.title}</div>
                     {gn.organizer_id === currentUserId && (
@@ -291,6 +337,21 @@ function GameNightsList({ reload }) {
                       minute: "2-digit",
                       hour12: true,
                     })}
+                    <br />
+                    {(() => {
+                      const { text, isToday } = getTimeUntil(gn.event_date);
+                      return (
+                        <span
+                          style={{
+                            fontSize: "0.85rem",
+                            color: isToday ? "#00cc66" : "#ccc",
+                            fontWeight: isToday ? "bold" : "normal",
+                          }}
+                        >
+                          {text}
+                        </span>
+                      );
+                    })()}
                   </td>
 
                   <td>

@@ -518,3 +518,8 @@ table {
   border-radius: 12px;
   margin-top: 16px;
 }
+
+.past-event-row {
+  opacity: 0.3;
+  font-style: italic;
+}

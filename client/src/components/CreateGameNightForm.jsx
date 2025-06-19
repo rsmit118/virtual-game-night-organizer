@@ -65,6 +65,12 @@ function CreateGameNightForm({ onGameNightCreated }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const now = new Date();
+    if (formData.event_date <= now) {
+      setFormError("Please select a future time.");
+      return;
+    }
+
     if (!formData.event_date) {
       setFormError("Please select a date and time.");
       return;
@@ -155,6 +161,11 @@ function CreateGameNightForm({ onGameNightCreated }) {
             />
           }
         />
+        {formError && (
+          <p style={{ color: "red", marginTop: "-12px", fontSize: "1.2rem" }}>
+            {formError}
+          </p>
+        )}
 
         <div className="game-event-row">
           <div className="game-select-group">
@@ -171,15 +182,21 @@ function CreateGameNightForm({ onGameNightCreated }) {
               <option value="" disabled hidden>
                 Choose a game
               </option>
-              <option value="Diablo 4">Diablo 4</option>
-              <option value="Fortnite">Fortnite</option>
-              <option value="League of Legends">League of Legends</option>
-              <option value="Mario Kart World">Mario Kart World</option>
-              <option value="Overwatch">Overwatch</option>
-              <option value="Super Mario Party Jamboree">
-                Super Mario Party Jamboree
+              <option value="Diablo 4 (D4)">Diablo 4 (D4)</option>
+              <option value="Fortnite (FN)">Fortnite (FN)</option>
+              <option value="League of Legends (LoL)">
+                League of Legends (LoL)
               </option>
-              <option value="World of Warcraft">World of Warcraft</option>
+              <option value="Mario Kart World (MKW)">
+                Mario Kart World (MKW)
+              </option>
+              <option value="Overwatch (OW)">Overwatch (OW)</option>
+              <option value="Super Mario Party Jamboree (SMPJ)">
+                Super Mario Party Jamboree (SMPJ)
+              </option>
+              <option value="World of Warcraft (WoW)">
+                World of Warcraft (WoW)
+              </option>
               <option value="Other">Other</option>
             </select>
           </div>
