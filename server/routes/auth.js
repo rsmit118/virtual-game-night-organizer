@@ -54,13 +54,16 @@ router.post(
 
       if (existingUser.rows.length > 0) {
         const taken = existingUser.rows[0];
-        if (taken.username === username && taken.email === email) {
+        const takenUsername = taken.username.toLowerCase();
+        const takenEmail = taken.email.toLowerCase();
+
+        if (takenUsername === usernameLc && takenEmail === email) {
           return res
             .status(400)
             .json({ message: "Username and email already in use." });
-        } else if (taken.username === username) {
+        } else if (takenUsername === usernameLc) {
           return res.status(400).json({ message: "Username already in use." });
-        } else if (taken.email === email) {
+        } else if (takenEmail === email) {
           return res.status(400).json({ message: "Email already in use." });
         }
       }
@@ -87,8 +90,21 @@ router.post(
         token,
       });
     } catch (err) {
-      console.error(err);
-      res.status(500).send("Server error");
+      console.error("Registration failed:", err);
+
+      if (err.code === "23505") {
+        if (err.detail?.includes("username")) {
+          return res.status(400).json({ message: "Username already in use." });
+        } else if (err.detail?.includes("email")) {
+          return res.status(400).json({ message: "Email already in use." });
+        } else {
+          return res
+            .status(400)
+            .json({ message: "Username or email already in use." });
+        }
+      }
+
+      res.status(500).json({ message: "Server error" });
     }
   }
 );
@@ -289,6 +305,39 @@ router.patch("/change-password", authLimiter, authorize, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error changing password." });
+  }
+});
+
+router.post("/check-availability", async (req, res) => {
+  const { username, email } = req.body;
+
+  if (!username && !email) {
+    return res.status(400).json({ message: "No data to check." });
+  }
+
+  const usernameLc = username?.toLowerCase() || null;
+  const emailLc = email?.toLowerCase() || null;
+
+  try {
+    const result = await pool.query(
+      "SELECT username_lc, email FROM users WHERE username_lc = $1 OR email = $2",
+      [usernameLc, emailLc]
+    );
+
+    const taken = {
+      username: false,
+      email: false,
+    };
+
+    for (const row of result.rows) {
+      if (row.username_lc === usernameLc) taken.username = true;
+      if (row.email === emailLc) taken.email = true;
+    }
+
+    res.json({ taken });
+  } catch (err) {
+    console.error("Availability check failed:", err);
+    res.status(500).json({ message: "Error checking availability." });
   }
 });
 

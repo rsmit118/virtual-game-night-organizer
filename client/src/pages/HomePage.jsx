@@ -5,6 +5,14 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import "./HomePage.css";
 
+function debounce(func, delay) {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+}
+
 function HomePage() {
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -34,6 +42,29 @@ function HomePage() {
     setEmailError("");
     setPasswordError("");
   };
+
+  const checkAvailability = debounce(async (name, email) => {
+    if (!name && !email) return;
+
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/auth/check-availability",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: name, email }),
+        }
+      );
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setNameError(data.taken.username ? "Username already in use." : "");
+      setEmailError(data.taken.email ? "Email already in use." : "");
+    } catch (err) {
+      console.error("Availability check failed:", err);
+    }
+  }, 500);
 
   const removeToast = (id) => {
     setToastMessages((prev) => prev.filter((msg) => msg.id !== id));
@@ -167,9 +198,39 @@ function HomePage() {
         setNameError("Username is required.");
       if (errors.includes("Valid email is required"))
         setEmailError("Valid email is required.");
-      if (errors.includes("Password must be at least 6 characters long"))
-        setPasswordError("Password must be at least 6 characters long.");
       errors.forEach((err) => showToast(err));
+      setIsSubmitting(false);
+      return;
+    }
+
+    const availabilityResponse = await fetch(
+      "http://localhost:5000/api/auth/check-availability",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: registerName, email: registerEmail }),
+      }
+    );
+
+    if (!availabilityResponse.ok) {
+      showToast("Could not validate username or email availability.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    const availability = await availabilityResponse.json();
+
+    if (availability.taken.username) {
+      setNameError("Username already in use.");
+      showToast("Username already in use.");
+    }
+
+    if (availability.taken.email) {
+      setEmailError("Email already in use.");
+      showToast("Email already in use.");
+    }
+
+    if (availability.taken.username || availability.taken.email) {
       setIsSubmitting(false);
       return;
     }
@@ -198,31 +259,44 @@ function HomePage() {
           navigate("/game-nights");
         }
       } else {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          throw new Error("Server returned non-JSON response.");
+        }
+
         console.error("Registration failed:", errorData);
 
         if (errorData.message) {
-          if (errorData.message.includes("Username")) {
+          if (errorData.message.toLowerCase().includes("username")) {
             setNameError(errorData.message);
           }
-          if (errorData.message.includes("Email")) {
+          if (errorData.message.toLowerCase().includes("email")) {
             setEmailError(errorData.message);
+          }
+          if (errorData.message.toLowerCase().includes("password")) {
+            setPasswordError(errorData.message);
           }
           showToast(errorData.message);
         } else if (errorData.errors) {
           errorData.errors.forEach((err) => {
-            if (err.msg.includes("Username")) setNameError(err.msg);
-            if (err.msg.includes("email")) setEmailError(err.msg);
-            if (err.msg.includes("Password")) setPasswordError(err.msg);
+            if (err.msg.toLowerCase().includes("username"))
+              setNameError(err.msg);
+            if (err.msg.toLowerCase().includes("email")) setEmailError(err.msg);
+            if (err.msg.toLowerCase().includes("password"))
+              setPasswordError(err.msg);
             showToast(err.msg);
           });
         } else {
           setNameError("Registration failed. Please try again.");
+          showToast("Registration failed.");
         }
       }
     } catch (err) {
       console.error("Error during registration:", err);
       setNameError("An error occurred during registration.");
+      showToast(err.message || "An unknown error occurred.");
     }
 
     setIsSubmitting(false);
@@ -381,20 +455,36 @@ function HomePage() {
                   gap: "25px",
                 }}
               >
-                <input
-                  type="text"
-                  value={registerName}
-                  onChange={(e) => setRegisterName(e.target.value)}
-                  placeholder={nameError ? nameError : "Username"}
-                  className={nameError ? "input-error" : ""}
-                />
-                <input
-                  type="email"
-                  value={registerEmail}
-                  onChange={(e) => setRegisterEmail(e.target.value)}
-                  placeholder={emailError ? emailError : "Email"}
-                  className={emailError ? "input-error" : ""}
-                />
+                <div className="input-wrapper">
+                  <input
+                    type="text"
+                    value={registerName}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setRegisterName(val);
+                      checkAvailability(val, registerEmail);
+                    }}
+                    placeholder="Username"
+                    className={nameError ? "input-error" : ""}
+                  />
+                  {nameError && <div className="field-error">{nameError}</div>}
+                </div>
+                <div className="input-wrapper">
+                  <input
+                    type="email"
+                    value={registerEmail}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setRegisterEmail(val);
+                      checkAvailability(registerName, val);
+                    }}
+                    placeholder="Email"
+                    className={emailError ? "input-error" : ""}
+                  />
+                  {emailError && (
+                    <div className="field-error">{emailError}</div>
+                  )}
+                </div>
                 <small
                   className="password-hint"
                   style={{
@@ -435,12 +525,12 @@ function HomePage() {
 
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || nameError || emailError}
                     className="button-base"
                   >
                     Register
                   </button>
-                </div>{" "}
+                </div>
               </form>
             </motion.div>
           </motion.div>

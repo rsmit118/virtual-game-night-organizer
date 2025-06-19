@@ -52,7 +52,7 @@
 
 .home-content-box {
   background-color: rgba(0, 0, 0, 0.6);
-  padding: 10px 40px 35px 40px;
+  padding: 15px 40px 50px 40px;
   border-radius: 12px;
   max-width: 1100px;
   text-align: center;
@@ -224,7 +224,7 @@
 
 .register-modal {
   background-color: rgba(0, 0, 0, 0.6);
-  padding: 30px 40px 30px 40px;
+  padding: 38px 40px 38px 40px;
   border-radius: 12px;
   text-align: center;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
@@ -236,7 +236,7 @@
   flex-direction: column;
   align-items: center;
   gap: 25px;
-  margin-top: 306px;
+  margin-top: 290px;
 }
 
 @supports (backdrop-filter: blur(16px)) {
@@ -424,4 +424,28 @@
 
 .logout-button:hover {
   background-color: #ef5350;
+}
+
+.input-error {
+  border: 2px solid #ff4c4c;
+  background-color: #fff0f0;
+  color: #c00;
+}
+
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 0;
+  margin-right: 22px;
+}
+
+.field-error {
+  color: #ff4c4c;
+  font-size: 1.2rem;
+  margin-top: 0.35rem;
+  margin-bottom: -1.1rem;
+  padding-left: 4px;
+  font-weight: bold;
 }
