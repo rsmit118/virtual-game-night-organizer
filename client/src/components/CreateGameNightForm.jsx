@@ -6,7 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 function CreateGameNightForm({ onGameNightCreated }) {
   const [formData, setFormData] = useState({
     title: "",
-    event_date: null,
+    event_date: "",
     organizer_id: "",
     location_type: "in-person",
     selected_game: "",
@@ -83,7 +83,7 @@ function CreateGameNightForm({ onGameNightCreated }) {
         body: JSON.stringify({
           ...formData,
           event_date: formData.event_date
-            ? formData.event_date.toISOString()
+            ? formData.event_date.toLocaleString("sv-SE").replace(" ", "T")
             : null,
           location_type: formData.location_type || "online",
           selected_game: formData.selected_game || null,
@@ -120,7 +120,7 @@ function CreateGameNightForm({ onGameNightCreated }) {
 
   return (
     <div className="game-form-box">
-      <h2 className="game-section-title">Create Game Night</h2>
+      <h2 className="game-section-title">Create Your Game Night</h2>
       <form onSubmit={handleSubmit} className="game-form">
         <input
           type="text"

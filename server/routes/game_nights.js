@@ -57,7 +57,7 @@ router.post(
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM game_nights ORDER BY event_date DESC"
+      "SELECT * FROM game_nights ORDER BY event_date ASC"
     );
     res.json(result.rows);
   } catch (err) {

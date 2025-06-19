@@ -80,7 +80,7 @@ router.post(
         username: user.username,
       };
 
-      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1d" });
 
       res.status(201).json({
         message: "User registered successfully",

@@ -39,7 +39,7 @@ function GameNightsPage() {
           </div>
         </nav>
 
-        <h2 className="profile-title">Create Game Night</h2>
+        <h2 className="profile-title">Game Night Planner</h2>
         <div className="user-badge">
           <span className="username-highlight">{username}</span>
         </div>

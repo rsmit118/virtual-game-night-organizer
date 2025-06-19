@@ -9,6 +9,7 @@ function GameNightsList({ reload }) {
   const [editingGameNight, setEditingGameNight] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDate, setEditDate] = useState("");
+  const [allGameNights, setAllGameNights] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -32,23 +33,34 @@ function GameNightsList({ reload }) {
       const data = await response.json();
 
       setGameNights(data.data);
+      setAllGameNights(data.data);
     } catch (error) {
       console.error("Failed to fetch game nights:", error);
     }
   };
 
-  const handleSearch = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/game_nights/search?title=${encodeURIComponent(
-          searchTerm
-        )}`
+  const handleSearch = () => {
+    const query = searchTerm.toLowerCase();
+
+    const filtered = gameNights.filter((gn) => {
+      const title = gn.title?.toLowerCase() || "";
+      const location = gn.location_type?.toLowerCase() || "";
+      const game = gn.games?.[0]?.title?.toLowerCase() || "";
+      const organizer = gn.organizer_username?.toLowerCase() || "";
+      const attendees = gn.attendees
+        .map((a) => a.username.toLowerCase())
+        .join(" ");
+
+      return (
+        title.includes(query) ||
+        location.includes(query) ||
+        game.includes(query) ||
+        organizer.includes(query) ||
+        attendees.includes(query)
       );
-      const data = await response.json();
-      setGameNights(data);
-    } catch (err) {
-      console.error(err);
-    }
+    });
+
+    setGameNights(filtered);
   };
 
   const handleDelete = async (id) => {
@@ -164,6 +176,11 @@ function GameNightsList({ reload }) {
     }
   };
 
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    setGameNights(allGameNights);
+  };
+
   useEffect(() => {
     fetchGameNights();
   }, [reload]);
@@ -175,12 +192,23 @@ function GameNightsList({ reload }) {
       <div className="game-search-bar">
         <input
           type="text"
-          placeholder="Search by Title"
+          placeholder="Search by title, game, location, or attendee..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleSearch();
+            } else if (e.key === "Escape") {
+              handleClearSearch();
+            }
+          }}
         />
         <button onClick={handleSearch} className="button-base">
           Search
+        </button>
+
+        <button onClick={handleClearSearch} className="clear-btn">
+          Clear
         </button>
       </div>
 
@@ -226,110 +254,112 @@ function GameNightsList({ reload }) {
           </thead>
 
           <tbody>
-            {gameNights.map((gn) => (
-              <tr key={gn.game_night_id}>
-                <td>
-                  <div>{gn.title}</div>
-                  {gn.organizer_id === currentUserId && (
-                    <div style={{ marginTop: "4px" }}>
-                      <button
-                        onClick={() => handleEdit(gn)}
-                        style={{ marginRight: "6px" }}
-                      >
-                        Edit
-                      </button>
-                      <button onClick={() => handleDelete(gn.game_night_id)}>
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </td>
+            {[...gameNights]
+              .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
+              .map((gn) => (
+                <tr key={gn.game_night_id}>
+                  <td>
+                    <div>{gn.title}</div>
+                    {gn.organizer_id === currentUserId && (
+                      <div style={{ marginTop: "4px" }}>
+                        <button
+                          onClick={() => handleEdit(gn)}
+                          style={{ marginRight: "6px" }}
+                        >
+                          Edit
+                        </button>
+                        <button onClick={() => handleDelete(gn.game_night_id)}>
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </td>
 
-                <td>
-                  {new Date(gn.event_date).toLocaleDateString("en-US", {
-                    weekday: "long",
-                  })}
-                  <br />
-                  {new Date(gn.event_date).toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "2-digit",
-                    year: "numeric",
-                  })}
-                  <br />
-                  {new Date(gn.event_date).toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
-                </td>
+                  <td>
+                    {new Date(gn.event_date).toLocaleDateString("en-US", {
+                      weekday: "long",
+                    })}
+                    <br />
+                    {new Date(gn.event_date).toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "2-digit",
+                      year: "numeric",
+                    })}
+                    <br />
+                    {new Date(gn.event_date).toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })}
+                  </td>
 
-                <td>
-                  {gn.games && gn.games.length > 0 ? gn.games[0].title : "—"}
-                </td>
-                <td>
-                  {gn.location_type === "online" ? "Online" : "In-Person"}
-                </td>
-                <td>{gn.organizer_username}</td>
-                <td>
-                  <Tooltip
-                    title={
-                      gn.attendees.length > 0 ? (
-                        <div>
-                          {gn.attendees
-                            .map((a) => a.username)
-                            .sort((a, b) => a.localeCompare(b))
-                            .map((name, index) => (
-                              <div key={index}>{name}</div>
-                            ))}
-                        </div>
-                      ) : (
-                        "No attendees yet"
-                      )
-                    }
-                    arrow
-                    placement="top"
-                    componentsProps={{
-                      tooltip: {
-                        sx: {
-                          fontSize: "1.2rem",
-                          fontWeight: "bold",
-                          maxWidth: 400,
-                          padding: "12px 16px",
-                          lineHeight: 1.6,
-                          backgroundColor: "#3f9ddb",
-                          color: "#fff",
+                  <td>
+                    {gn.games && gn.games.length > 0 ? gn.games[0].title : "—"}
+                  </td>
+                  <td>
+                    {gn.location_type === "online" ? "Online" : "In-Person"}
+                  </td>
+                  <td>{gn.organizer_username}</td>
+                  <td>
+                    <Tooltip
+                      title={
+                        gn.attendees.length > 0 ? (
+                          <div>
+                            {gn.attendees
+                              .map((a) => a.username)
+                              .sort((a, b) => a.localeCompare(b))
+                              .map((name, index) => (
+                                <div key={index}>{name}</div>
+                              ))}
+                          </div>
+                        ) : (
+                          "No attendees yet"
+                        )
+                      }
+                      arrow
+                      placement="top"
+                      componentsProps={{
+                        tooltip: {
+                          sx: {
+                            fontSize: "1.2rem",
+                            fontWeight: "bold",
+                            maxWidth: 400,
+                            padding: "12px 16px",
+                            lineHeight: 1.6,
+                            backgroundColor: "#3f9ddb",
+                            color: "#fff",
+                          },
                         },
-                      },
-                      arrow: {
-                        sx: {
-                          color: "#3f9ddb",
+                        arrow: {
+                          sx: {
+                            color: "#3f9ddb",
+                          },
                         },
-                      },
-                    }}
-                  >
-                    <div
-                      style={{
-                        cursor: "help",
-                        textDecoration: "underline dotted",
-                        textUnderlineOffset: "3px",
                       }}
                     >
-                      <strong>{gn.attendees.length}</strong> attending
-                    </div>
-                  </Tooltip>
+                      <div
+                        style={{
+                          cursor: "help",
+                          textDecoration: "underline dotted",
+                          textUnderlineOffset: "3px",
+                        }}
+                      >
+                        <strong>{gn.attendees.length}</strong> attending
+                      </div>
+                    </Tooltip>
 
-                  {gn.attendees.some((a) => a.user_id === currentUserId) ? (
-                    <button onClick={() => handleRSVP(gn.game_night_id)}>
-                      Cancel RSVP
-                    </button>
-                  ) : (
-                    <button onClick={() => handleRSVP(gn.game_night_id)}>
-                      RSVP
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
+                    {gn.attendees.some((a) => a.user_id === currentUserId) ? (
+                      <button onClick={() => handleRSVP(gn.game_night_id)}>
+                        Cancel RSVP
+                      </button>
+                    ) : (
+                      <button onClick={() => handleRSVP(gn.game_night_id)}>
+                        RSVP
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>

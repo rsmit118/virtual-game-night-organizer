@@ -180,6 +180,7 @@
 }
 
 .game-search-bar {
+  width: 100%;
   display: flex;
   gap: 12px;
   justify-content: center;
@@ -191,7 +192,23 @@
   font-size: 1rem;
   border-radius: 6px;
   border: none;
-  width: 300px;
+  width: 500px;
+}
+
+.clear-btn {
+  background-color: #3f9ddb;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.clear-btn:hover {
+  background-color: #00aaff;
+  transform: scale(1.05);
 }
 
 .game-table-wrapper {
@@ -492,4 +509,12 @@ table {
   gap: 6px;
   font-weight: 500;
   color: white;
+}
+
+.game-table-wrapper {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: auto;
+  border-radius: 12px;
+  margin-top: 16px;
 }
