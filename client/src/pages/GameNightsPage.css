@@ -587,7 +587,7 @@ table {
 
 .popover-confirm {
   position: absolute;
-  top: 110%;
+  bottom: 110%;
   left: 0;
   background-color: #1e1e1e;
   color: white;

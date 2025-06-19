@@ -22,16 +22,22 @@ router.post(
       if (req.user.userId !== req.body.organizer_id) {
         return res.status(403).json({ message: "User ID mismatch" });
       }
-
-      const { title, event_date, organizer_id, selected_game } = req.body;
+      const { title, event_date, organizer_id, selected_game, location_type } =
+        req.body;
 
       const query = `
-  INSERT INTO game_nights (title, event_date, organizer_id)
-  VALUES ($1, $2, $3)
+  INSERT INTO game_nights (title, event_date, organizer_id, location_type)
+  VALUES ($1, $2, $3, $4)
   RETURNING game_night_id
 `;
 
-      const result = await db.query(query, [title, event_date, organizer_id]);
+      const result = await db.query(query, [
+        title,
+        event_date,
+        organizer_id,
+        location_type,
+      ]);
+
       const gameNightId = result.rows[0].game_night_id;
 
       await db.query(
@@ -153,6 +159,7 @@ router.get("/report", async (req, res) => {
         gn.title,
         gn.event_date,
         gn.organizer_id,
+        gn.location_type,
         gn.created_at,
         u.username AS organizer_username
       FROM game_nights gn

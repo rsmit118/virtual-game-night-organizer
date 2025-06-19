@@ -8,7 +8,7 @@ function CreateGameNightForm({ onGameNightCreated }) {
     title: "",
     event_date: "",
     organizer_id: "",
-    location_type: "in-person",
+    location_type: "online",
     selected_game: "",
   });
 
@@ -44,7 +44,11 @@ function CreateGameNightForm({ onGameNightCreated }) {
   const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleDateChange = (date) => {
