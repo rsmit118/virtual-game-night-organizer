@@ -305,7 +305,7 @@
 }
 
 .custom-datepicker-popup {
-  margin-top: -374px;
+  margin-top: -321px;
   z-index: 9999;
 }
 
@@ -437,6 +437,12 @@
 
 .custom-datepicker-input.error::placeholder {
   color: rgb(255, 75, 75);
+}
+
+.react-datepicker-popper[data-placement^="top"] {
+  top: 8rem !important;
+  left: 33rem !important;
+  transform: translateX(-260px) !important;
 }
 
 .user-badge {

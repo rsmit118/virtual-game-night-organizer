@@ -276,6 +276,7 @@ function GameNightsList({ reload }) {
               maxTime={new Date(0, 0, 0, 23, 59)}
               className="custom-datepicker-input"
               wrapperClassName="datepicker-wrapper"
+              popperPlacement="top"
             />
           </div>
 
