@@ -1,6 +1,8 @@
 import Tooltip from "@mui/material/Tooltip";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 function GameNightsList({ reload }) {
   const [currentUserId, setCurrentUserId] = useState(null);
@@ -10,6 +12,7 @@ function GameNightsList({ reload }) {
   const [editTitle, setEditTitle] = useState("");
   const [editDate, setEditDate] = useState("");
   const [allGameNights, setAllGameNights] = useState([]);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -64,8 +67,6 @@ function GameNightsList({ reload }) {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this game night?"))
-      return;
     try {
       const response = await fetch(
         `http://localhost:5000/api/game_nights/${id}`,
@@ -95,7 +96,7 @@ function GameNightsList({ reload }) {
 
     setEditingGameNight(fixedGameNight);
     setEditTitle(fixedGameNight.title);
-    setEditDate(new Date(fixedGameNight.event_date).toISOString().slice(0, 16));
+    setEditDate(new Date(fixedGameNight.event_date));
   };
 
   const submitEdit = async () => {
@@ -113,7 +114,9 @@ function GameNightsList({ reload }) {
           },
           body: JSON.stringify({
             title: editTitle,
-            event_date: editDate,
+            event_date: editDate
+              ? editDate.toLocaleString("sv-SE").replace(" ", "T")
+              : null,
             organizer_id: currentUserId,
           }),
         }
@@ -212,6 +215,15 @@ function GameNightsList({ reload }) {
     return { text, isToday: isSameDay };
   }
 
+  function isToday(date) {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  }
+
   console.log("Game nights:", gameNights);
 
   return (
@@ -248,11 +260,25 @@ function GameNightsList({ reload }) {
             onChange={(e) => setEditTitle(e.target.value)}
             placeholder="Title"
           />
-          <input
-            type="datetime-local"
-            value={editDate}
-            onChange={(e) => setEditDate(e.target.value)}
-          />
+          <div style={{ width: "100%" }}>
+            <DatePicker
+              selected={new Date(editDate)}
+              onChange={(date) => setEditDate(date)}
+              showTimeSelect
+              timeIntervals={15}
+              dateFormat="MMMM d, yyyy h:mm aa"
+              minDate={new Date()}
+              minTime={
+                editDate && isToday(editDate)
+                  ? new Date()
+                  : new Date(0, 0, 0, 0, 0)
+              }
+              maxTime={new Date(0, 0, 0, 23, 59)}
+              className="custom-datepicker-input"
+              wrapperClassName="datepicker-wrapper"
+            />
+          </div>
+
           <div className="game-edit-buttons">
             <button onClick={submitEdit} className="button-base">
               Save
@@ -271,11 +297,11 @@ function GameNightsList({ reload }) {
         <table className="game-table">
           <thead>
             <tr>
-              <th style={{ width: "30%" }}>Title</th>
+              <th style={{ width: "30%" }}>Event Name</th>
               <th style={{ width: "15%" }}>Date</th>
               <th style={{ width: "15%" }}>Game</th>
               <th style={{ width: "10%" }}>Location</th>
-              <th style={{ width: "15%" }}>Organizer</th>
+              <th style={{ width: "15%" }}>Host</th>
               <th style={{ width: "15%" }}>RSVP</th>
             </tr>
           </thead>
@@ -306,19 +332,51 @@ function GameNightsList({ reload }) {
                 >
                   <td>
                     <div>{gn.title}</div>
-                    {gn.organizer_id === currentUserId && (
-                      <div style={{ marginTop: "4px" }}>
-                        <button
-                          onClick={() => handleEdit(gn)}
-                          style={{ marginRight: "6px" }}
-                        >
-                          Edit
-                        </button>
-                        <button onClick={() => handleDelete(gn.game_night_id)}>
-                          Delete
-                        </button>
-                      </div>
-                    )}
+                    {gn.organizer_id === currentUserId &&
+                      new Date(gn.event_date) > new Date() && (
+                        <div style={{ marginTop: "4px" }}>
+                          <button
+                            className="game-button"
+                            onClick={() => handleEdit(gn)}
+                            style={{ marginRight: "6px" }}
+                          >
+                            Edit
+                          </button>
+                          <div className="delete-button-wrapper">
+                            <button
+                              className="game-button delete-button"
+                              onClick={() =>
+                                setConfirmingDeleteId(gn.game_night_id)
+                              }
+                            >
+                              Delete
+                            </button>
+
+                            {confirmingDeleteId === gn.game_night_id && (
+                              <div className="popover-confirm">
+                                <p>Are you sure?</p>
+                                <div className="popover-buttons">
+                                  <button
+                                    className="game-button"
+                                    onClick={() => {
+                                      handleDelete(gn.game_night_id);
+                                      setConfirmingDeleteId(null);
+                                    }}
+                                  >
+                                    Yes
+                                  </button>
+                                  <button
+                                    className="game-button"
+                                    onClick={() => setConfirmingDeleteId(null)}
+                                  >
+                                    No
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                   </td>
 
                   <td>
@@ -409,15 +467,22 @@ function GameNightsList({ reload }) {
                       </div>
                     </Tooltip>
 
-                    {gn.attendees.some((a) => a.user_id === currentUserId) ? (
-                      <button onClick={() => handleRSVP(gn.game_night_id)}>
-                        Cancel RSVP
-                      </button>
-                    ) : (
-                      <button onClick={() => handleRSVP(gn.game_night_id)}>
-                        RSVP
-                      </button>
-                    )}
+                    {new Date(gn.event_date) > new Date() &&
+                      (gn.attendees.some((a) => a.user_id === currentUserId) ? (
+                        <button
+                          className="game-button"
+                          onClick={() => handleRSVP(gn.game_night_id)}
+                        >
+                          Cancel RSVP
+                        </button>
+                      ) : (
+                        <button
+                          className="game-button"
+                          onClick={() => handleRSVP(gn.game_night_id)}
+                        >
+                          RSVP
+                        </button>
+                      ))}
                   </td>
                 </tr>
               ))}

@@ -50,7 +50,7 @@ function GameNightsPage() {
       </div>
 
       <div className="game-nights-content-box">
-        <h2 className="profile-title">Game Nights Report</h2>
+        <h2 className="profile-title">Game Night Report</h2>
         <p className="profile-description">
           View and manage your scheduled game nights.
         </p>

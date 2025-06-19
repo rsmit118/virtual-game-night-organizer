@@ -211,10 +211,6 @@
   transform: scale(1.05);
 }
 
-.game-table-wrapper {
-  overflow-x: auto;
-}
-
 .game-table {
   width: 100%;
   border-collapse: collapse;
@@ -222,7 +218,6 @@
   color: #f0f0f0;
   text-align: center;
   border-radius: 12px;
-  overflow: hidden;
   font-size: 0.95rem;
 }
 
@@ -233,12 +228,24 @@
 }
 
 .game-table th {
-  background-color: rgba(255, 255, 255, 0.06);
-  color: #00bfff;
+  background-color: #3f9ddb;
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
 
 .game-table tr:last-child td {
   border-bottom: none;
+}
+
+.game-table th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.game-table th:last-child {
+  border-top-right-radius: 12px;
 }
 
 .small-btn {
@@ -512,7 +519,8 @@ table {
 }
 
 .game-table-wrapper {
-  max-height: 600px;
+  position: relative;
+  max-height: 700px;
   overflow-y: auto;
   overflow-x: auto;
   border-radius: 12px;
@@ -522,4 +530,77 @@ table {
 .past-event-row {
   opacity: 0.3;
   font-style: italic;
+}
+
+.game-button {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  margin: 0 4px;
+  margin-top: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.game-button:hover {
+  background-color: #2563eb;
+}
+
+.delete-button {
+  background-color: #ef4444;
+}
+
+.delete-button:hover {
+  background-color: #dc2626;
+}
+
+.datepicker-wrapper {
+  width: 100%;
+}
+
+.edit-form-input {
+  width: 100%;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.edit-form-input input,
+.datepicker-wrapper .custom-datepicker-input {
+  width: 103.4%;
+  margin-left: -10px;
+  margin-right: -4px;
+  padding: 10px;
+  color: white;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.delete-button-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.popover-confirm {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  background-color: #1e1e1e;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.popover-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  justify-content: center;
 }

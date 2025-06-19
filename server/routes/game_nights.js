@@ -68,7 +68,7 @@ router.get("/", async (req, res) => {
 
 router.put("/:id", authorize, async (req, res) => {
   const { id } = req.params;
-  const { title } = req.body;
+  const { title, event_date, organizer_id } = req.body;
 
   try {
     const result = await pool.query(
@@ -89,8 +89,8 @@ router.put("/:id", authorize, async (req, res) => {
     }
 
     await pool.query(
-      "UPDATE game_nights SET title = $1 WHERE game_night_id = $2",
-      [title, id]
+      "UPDATE game_nights SET title = $1, event_date = $2, organizer_id = $3 WHERE game_night_id = $4",
+      [title, event_date, organizer_id, id]
     );
 
     res.status(200).json({ message: "Event updated successfully." });
