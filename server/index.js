@@ -11,7 +11,10 @@ const gameNightRoutes = require("./routes/game_nights");
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://virtual-game-night-organizer.netlify.app",
+    ],
     credentials: true,
   })
 );
