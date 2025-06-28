@@ -210,7 +210,7 @@ function HomePage() {
     }
 
     const availabilityResponse = await fetch(
-      +`${import.meta.env.VITE_API_BASE_URL}/api/auth/check-availability`,
+      `${import.meta.env.VITE_API_BASE_URL}/api/auth/check-availability`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
