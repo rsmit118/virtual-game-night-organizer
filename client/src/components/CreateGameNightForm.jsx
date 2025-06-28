@@ -84,21 +84,24 @@ function CreateGameNightForm({ onGameNightCreated }) {
 
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch("/api/game_nights", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ...formData,
-          event_date: formData.event_date
-            ? formData.event_date.toLocaleString("sv-SE").replace(" ", "T")
-            : null,
-          location_type: formData.location_type || "online",
-          selected_game: formData.selected_game || null,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/game_nights`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...formData,
+            event_date: formData.event_date
+              ? formData.event_date.toLocaleString("sv-SE").replace(" ", "T")
+              : null,
+            location_type: formData.location_type || "online",
+            selected_game: formData.selected_game || null,
+          }),
+        }
+      );
 
       const data = await response.json();
       if (response.ok) {

@@ -31,7 +31,7 @@ function GameNightsList({ reload }) {
   const fetchGameNights = async () => {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/game_nights/report"
+        `${import.meta.env.VITE_API_BASE_URL}/api/game_nights/report`
       );
       const data = await response.json();
 
@@ -69,7 +69,7 @@ function GameNightsList({ reload }) {
   const handleDelete = async (id) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/game_nights/${id}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/game_nights/${id}`,
         {
           method: "DELETE",
           headers: {
@@ -105,7 +105,9 @@ function GameNightsList({ reload }) {
       console.log("Editing ID:", editingGameNight.game_night_id);
 
       const response = await fetch(
-        `http://localhost:5000/api/game_nights/${editingGameNight.game_night_id}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/game_nights/${
+          editingGameNight.game_night_id
+        }`,
         {
           method: "PUT",
           headers: {
@@ -136,7 +138,9 @@ function GameNightsList({ reload }) {
   const handleRSVP = async (gameNightId) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/game_nights/${gameNightId}/rsvp`,
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/api/game_nights/${gameNightId}/rsvp`,
         {
           method: "POST",
           headers: {

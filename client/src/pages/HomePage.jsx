@@ -48,7 +48,7 @@ function HomePage() {
 
     try {
       const res = await fetch(
-        "http://localhost:5000/api/auth/check-availability",
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/check-availability`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -110,11 +110,14 @@ function HomePage() {
 
     const fetchUser = async () => {
       try {
-        const res = await fetch("/api/auth/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/api/auth/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!res.ok) {
           localStorage.removeItem("token");
@@ -140,16 +143,19 @@ function HomePage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: loginUsername.toLowerCase(),
-          password: loginPassword,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: loginUsername.toLowerCase(),
+            password: loginPassword,
+          }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -204,7 +210,7 @@ function HomePage() {
     }
 
     const availabilityResponse = await fetch(
-      "http://localhost:5000/api/auth/check-availability",
+      +`${import.meta.env.VITE_API_BASE_URL}/api/auth/check-availability`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -236,17 +242,20 @@ function HomePage() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: registerName,
-          email: registerEmail,
-          password: registerPassword,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: registerName,
+            email: registerEmail,
+            password: registerPassword,
+          }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
