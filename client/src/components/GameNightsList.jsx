@@ -100,8 +100,7 @@ function GameNightsList({ reload }) {
   };
 
   function toUTCISOString(date) {
-    const utcDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-    return utcDate.toISOString();
+    return date.toISOString();
   }
 
   const submitEdit = async () => {
