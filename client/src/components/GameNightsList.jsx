@@ -99,6 +99,11 @@ function GameNightsList({ reload }) {
     setEditDate(new Date(fixedGameNight.event_date));
   };
 
+  function toUTCISOString(date) {
+    const utcDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return utcDate.toISOString();
+  }
+
   const submitEdit = async () => {
     try {
       console.log("EditingGameNight object:", editingGameNight);
@@ -116,9 +121,7 @@ function GameNightsList({ reload }) {
           },
           body: JSON.stringify({
             title: editTitle,
-            event_date: editDate
-              ? editDate.toLocaleString("sv-SE").replace(" ", "T")
-              : null,
+            event_date: editDate ? toUTCISOString(editDate) : null,
             organizer_id: currentUserId,
           }),
         }
