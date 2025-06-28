@@ -66,6 +66,11 @@ function CreateGameNightForm({ onGameNightCreated }) {
     setFormError("");
   };
 
+  function toUTCISOString(date) {
+    const utcDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return utcDate.toISOString();
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -95,7 +100,7 @@ function CreateGameNightForm({ onGameNightCreated }) {
           body: JSON.stringify({
             ...formData,
             event_date: formData.event_date
-              ? formData.event_date.toLocaleString("sv-SE").replace(" ", "T")
+              ? toUTCISOString(formData.event_date)
               : null,
             location_type: formData.location_type || "online",
             selected_game: formData.selected_game || null,
